@@ -1,15 +1,19 @@
 """
-PISI FastAPI Server — Layer 6 REST API · v2.4 (Ultra-Fast Async Webhooks)
+PISI FastAPI Server — Layer 6 REST API · v2.5 (Structured Logging & Webhook Verification)
 Track 3: AI Revenue Recovery — Razorpay AI Buildathon 2026
 """
 import sys
 import os
 import hmac
 import hashlib
+import logging
 from datetime import datetime
 from typing import List, Optional, Dict, Any
 from pydantic import BaseModel
 from fastapi import FastAPI, HTTPException, Request, Header, BackgroundTasks
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] PISI: %(message)s")
 
 # Configure import paths
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
@@ -28,7 +32,7 @@ from src.monitoring.metrics import MetricsCollector, DriftDetector
 app = FastAPI(
     title="PISI REST API",
     description="Predictive Instant Settlement Intelligence — Track 3: AI Revenue Recovery",
-    version="2.4.0"
+    version="2.5.0"
 )
 
 # Instantiate Core System Stack
@@ -80,6 +84,8 @@ def _process_webhook_event_async(event_type: str, entity_data: dict):
     Background worker processing telemetry events asynchronously
     to guarantee <5-second response time for Razorpay.
     """
+    logging.info(f"Background Processing Webhook Event: {event_type}")
+
     if event_type == "payment.captured":
         tx_id = entity_data.get("id", f"tx_wh_{datetime.now().strftime('%H%M%S')}")
         amount = float(entity_data.get("amount", 0)) / 100.0
@@ -95,6 +101,7 @@ def _process_webhook_event_async(event_type: str, entity_data: dict):
             merchant_id="M-1001",
             method=method
         )
+        logging.info(f"Ingested Payment Capture: tx_id={tx_id}, amount=₹{amount:.2f}, bank={bank}")
 
     elif event_type in ["payment.failed", "bank.error", "payment.downtime.started", "payment.downtime.updated", "payment.downtime.resolved"]:
         bank = entity_data.get("bank", "SBI")
@@ -107,17 +114,23 @@ def _process_webhook_event_async(event_type: str, entity_data: dict):
         vitality_engine.ingest_error(
             bank_code=bank, error_type=error_code, amount=amount
         )
+        logging.info(f"Ingested Failure Telemetry: bank={bank}, amount=₹{amount:.2f}, error={error_code}")
 
         health = vitality_engine.compute_composite_health(bank)
+        logging.info(f"Re-evaluated {bank} Vitality: {health['composite_health']} HP [{health['status']}]")
+
         if health['composite_health'] < 50:
             pending = capture_stream.get_pending_captures(bank)
             decision = pisi_engine.evaluate_leg_a(bank, pending)
+            logging.info(f"Leg A Decision for {bank}: {decision['decision']} ({decision['escalation_tier']})")
+
             if decision['decision'] == 'ACTIVATE':
                 for tx in pending:
                     bridge_rec = bridge_system.create_bridge_record(tx, decision)
                     pisi_engine.activate_bridge_protection(tx, decision, bridge_rec['bridge_id'])
                     executor.execute_instant_settlement(tx, bridge_rec)
                     capture_stream.mark_protected(tx['tx_id'], bank)
+                    logging.info(f"Activated Bridge: bridge_id={bridge_rec['bridge_id']}, hash={bridge_rec['audit_hash_sha256'][:16]}...")
 
 
 # --- API Endpoints ---
@@ -127,7 +140,7 @@ def _process_webhook_event_async(event_type: str, entity_data: dict):
 def health_check():
     return {
         "service": "PISI — Predictive Instant Settlement Intelligence",
-        "version": "2.4.0",
+        "version": "2.5.0",
         "track": "Track 3: AI Revenue Recovery",
         "status": "operational",
         "timestamp": datetime.now().isoformat()
@@ -154,7 +167,9 @@ async def razorpay_webhook(
             webhook_secret.encode('utf-8'), body_bytes, hashlib.sha256
         ).hexdigest()
         if not hmac.compare_digest(expected_sig, x_razorpay_signature):
+            logging.warning("Rejected Webhook: Invalid HMAC Signature")
             raise HTTPException(status_code=400, detail="Invalid Razorpay webhook HMAC signature")
+        logging.info("Webhook HMAC Signature Verified [PASS]")
 
     try:
         payload = await request.json()
@@ -163,6 +178,8 @@ async def razorpay_webhook(
 
     event_type = payload.get("event", "unknown")
     entity_data = payload.get("payload", {}).get("payment", {}).get("entity", {})
+
+    logging.info(f"Accepted Webhook Event: {event_type} (Offloading to BackgroundTasks)")
 
     # Offload processing to background task for instant <5ms 200 OK response
     background_tasks.add_task(_process_webhook_event_async, event_type, entity_data)
