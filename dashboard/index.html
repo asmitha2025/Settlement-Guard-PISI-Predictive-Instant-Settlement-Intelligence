@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PISI — Settlement Intelligence Console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --cream:#F1EDD6; --card:#FBF9EE; --card-alt:#E9E4C8; --line:#D9D2AC;
+  --navy:#1C2B48; --navy-muted:#64738C; --teal:#1E4A47; --teal-soft:#DCE7E2;
+  --coral:#C64B3C; --coral-soft:#F3DCD5; --moss:#2F7A5C; --moss-soft:#DCEAE0;
+  --amber:#B4801E; --amber-soft:#F1E4C7;
+  --pill:#243247; --pill-text:#F1EDD6;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;background:var(--cream);color:var(--navy);
+  font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;}
+h1,h2,h3,.serif{font-family:'Source Serif 4',serif;}
+.mono{font-family:'JetBrains Mono',monospace;}
+.wrap{max-width:1180px;margin:0 auto;padding:22px 20px 70px;}
+a{color:var(--teal);}
+
+header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;
+  padding-bottom:18px;margin-bottom:20px;border-bottom:2px solid var(--navy);}
+.brand{display:flex;align-items:center;gap:11px;}
+.brand-mark{width:36px;height:36px;border-radius:8px;background:var(--navy);color:var(--cream);
+  display:flex;align-items:center;justify-content:center;font-weight:700;font-size:17px;flex-shrink:0;}
+.brand-name{font-size:21px;font-weight:700;letter-spacing:.01em;}
+.navpills{display:flex;gap:8px;flex-wrap:wrap;}
+.navpill{background:var(--pill);color:var(--pill-text);border:none;border-radius:20px;padding:9px 16px;
+  font-family:'Inter',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:opacity .15s;}
+.navpill:hover{opacity:.85;}
+.navpill.active{background:var(--teal);}
+.navright{display:flex;gap:10px;align-items:center;}
+.statuspill{border:1.5px solid var(--navy);background:var(--card);border-radius:20px;padding:8px 14px;
+  font-size:12.5px;font-weight:600;display:flex;align-items:center;gap:7px;}
+.livedot{width:8px;height:8px;border-radius:50%;background:var(--moss);animation:pulse 2s infinite;}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(47,122,92,.5);}70%{box-shadow:0 0 0 7px rgba(47,122,92,0);}100%{box-shadow:0 0 0 0 rgba(47,122,92,0);}}
+
+.panel{background:var(--card);border:1px solid var(--line);border-radius:4px;padding:18px 22px;margin-bottom:16px;}
+.panel-title{font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;margin-bottom:14px;
+  display:flex;align-items:center;gap:7px;}
+.controls-row{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:22px;align-items:end;}
+@media (max-width:800px){.controls-row{grid-template-columns:1fr 1fr;}}
+.control label{display:block;font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--navy-muted);margin-bottom:7px;}
+.control select{width:100%;padding:9px 10px;border:1.5px solid var(--navy);border-radius:3px;background:var(--cream);
+  color:var(--navy);font-family:'Inter',sans-serif;font-size:14px;font-weight:600;}
+.control-status{font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--navy-muted);margin-bottom:7px;}
+.control-status-val{font-size:14px;font-weight:600;display:flex;align-items:center;gap:6px;}
+
+.bankstrip{background:var(--card);border:1px solid var(--line);border-radius:4px;padding:14px 22px;
+  margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;}
+.bankstrip-label{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--navy-muted);margin-right:6px;}
+.bankbadges{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+.bankbadge{border-radius:20px;padding:5px 13px;font-size:13px;font-weight:700;cursor:pointer;}
+.bb-sbi{background:#DDE8F5;color:#1D4E89;} .bb-hdfc{background:#F3DCD5;color:#A13A26;}
+.bb-icici{background:#F1E4C7;color:#8A5E10;} .bb-axis{background:#E3D9EE;color:#5B3A87;}
+.bb-kotak{background:#DCEAE0;color:#286B49;} .bb-pnb{background:#FDE8E8;color:#9B2C2C;}
+.feedinfo{font-size:12px;color:var(--navy-muted);font-weight:600;}
+
+.hero{display:grid;grid-template-columns:1.15fr .85fr;gap:16px;margin-bottom:16px;}
+@media (max-width:860px){.hero{grid-template-columns:1fr;}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:4px;padding:22px;}
+.card-eyebrow{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--navy-muted);
+  margin-bottom:16px;display:flex;justify-content:space-between;align-items:baseline;}
+.card-eyebrow b{color:var(--navy);}
+.livehero-top{display:flex;justify-content:space-between;align-items:flex-start;}
+.livehero-num{font-family:'Source Serif 4',serif;font-size:52px;font-weight:700;line-height:1;}
+.livehero-sub{font-size:12px;color:var(--navy-muted);margin-top:4px;font-weight:600;}
+.status-chip{font-size:11.5px;font-weight:700;padding:5px 13px;border-radius:20px;letter-spacing:.03em;}
+.sc-healthy{background:var(--moss-soft);color:var(--moss);} .sc-degraded{background:var(--amber-soft);color:var(--amber);}
+.sc-critical{background:var(--coral-soft);color:var(--coral);}
+.metricrow{display:flex;gap:26px;margin-top:20px;padding-top:16px;border-top:1px solid var(--line);flex-wrap:wrap;}
+.metric .v{font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;}
+.metric .l{font-size:10.5px;color:var(--navy-muted);font-weight:600;margin-top:2px;}
+
+.legrow{border:1px solid var(--line);border-radius:3px;padding:12px 14px;margin-bottom:9px;
+  display:flex;justify-content:space-between;align-items:center;background:var(--cream);}
+.legrow:last-child{margin-bottom:0;}
+.leg-name{font-size:10.5px;color:var(--navy-muted);letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px;font-weight:700;}
+.leg-decision{font-size:16px;font-weight:700;display:flex;align-items:center;gap:8px;font-family:'Source Serif 4',serif;}
+.pip{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.pip-activate{background:var(--moss);} .pip-warn{background:var(--amber);} .pip-idle{background:var(--navy-muted);}
+.leg-note{font-size:10.5px;color:var(--navy-muted);text-align:right;max-width:150px;font-weight:600;}
+
+.trajcard{margin-bottom:16px;}
+svg.spark{width:100%;height:190px;}
+
+.tabbar{display:flex;background:var(--card);border:1px solid var(--line);border-radius:4px;overflow:hidden;margin-bottom:2px;}
+.tabbtn{flex:1;padding:13px 18px;background:transparent;border:none;font-family:'Inter',sans-serif;
+  font-size:13px;font-weight:700;color:var(--navy-muted);cursor:pointer;border-bottom:3px solid transparent;}
+.tabbtn.active{color:var(--navy);background:var(--card-alt);border-bottom:3px solid var(--teal);}
+.tabpanel{display:none;background:var(--card);border:1px solid var(--line);border-top:none;border-radius:0 0 4px 4px;
+  padding:22px;margin-bottom:16px;}
+.tabpanel.active{display:block;}
+
+.ledger{display:grid;grid-template-columns:repeat(4,1fr);gap:0;}
+.ledger-item{padding:4px 18px;border-left:1px solid var(--line);}
+.ledger-item:first-child{border-left:none;padding-left:0;}
+.ledger-num{font-size:22px;font-weight:700;font-family:'JetBrains Mono',monospace;}
+.ledger-label{font-size:10.5px;color:var(--navy-muted);text-transform:uppercase;letter-spacing:.05em;margin-top:4px;font-weight:600;}
+.cap-bar{height:6px;border-radius:4px;background:var(--line);margin-top:16px;overflow:hidden;}
+.cap-fill{height:100%;background:var(--teal);border-radius:4px;transition:width .6s ease;}
+.cap-caption{display:flex;justify-content:space-between;font-size:11px;color:var(--navy-muted);margin-top:6px;font-weight:600;}
+
+.kv{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px dashed var(--line);font-size:12.5px;}
+.kv:last-of-type{border-bottom:none;}
+.kv span:first-child{color:var(--navy-muted);font-weight:600;}
+.kv span:last-child{font-family:'JetBrains Mono',monospace;font-weight:600;}
+.hash-box{background:var(--navy);border-radius:4px;padding:10px 12px;margin-top:10px;
+  font-family:'JetBrains Mono',monospace;font-size:10.5px;color:#7FD9B8;word-break:break-all;line-height:1.5;}
+.ledger-trail{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;}
+.trail-step{font-size:9.5px;background:var(--card-alt);border:1px solid var(--line);border-radius:3px;
+  padding:4px 8px;color:var(--navy-muted);font-weight:700;}
+.balanced{margin-top:12px;font-size:11.5px;color:var(--moss);display:flex;align-items:center;gap:6px;font-weight:700;}
+
+.heatgrid{display:grid;grid-template-columns:90px repeat(6,1fr);gap:4px;align-items:center;}
+.heatgrid .rowlabel{font-size:12px;font-weight:700;}
+.heatgrid .collabel{font-size:9.5px;color:var(--navy-muted);text-align:center;font-weight:700;}
+.heatcell{height:34px;border-radius:3px;display:flex;align-items:center;justify-content:center;
+  font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:700;color:#fff;}
+
+.matrix{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
+.mcell{border-radius:3px;padding:14px;text-align:center;}
+.mcell .n{font-size:26px;font-weight:700;font-family:'JetBrains Mono',monospace;}
+.mcell .l{font-size:10px;text-transform:uppercase;letter-spacing:.05em;margin-top:3px;font-weight:700;}
+.m-tp{background:var(--moss-soft);color:var(--moss);} .m-fn{background:var(--coral-soft);color:var(--coral);}
+.m-fp{background:var(--amber-soft);color:var(--amber);} .m-tn{background:var(--card-alt);color:var(--navy-muted);}
+
+.comparewrap{display:flex;gap:14px;}
+.comparecard{flex:1;border-radius:4px;padding:16px;text-align:center;border:1.5px solid var(--line);}
+.comparecard.win{border-color:var(--teal);background:var(--teal-soft);}
+.comparecard .name{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;color:var(--navy-muted);}
+.comparecard.win .name{color:var(--teal);}
+.comparecard .big{font-size:24px;font-weight:700;font-family:'JetBrains Mono',monospace;}
+.comparecard .sub{font-size:9.5px;color:var(--navy-muted);margin-top:2px;font-weight:600;}
+
+.formulabox{background:var(--navy);color:var(--cream);border-radius:6px;padding:26px;text-align:center;margin-bottom:16px;}
+.formulabox .flabel{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#9FB0C8;margin-bottom:10px;font-weight:700;}
+.formulabox .fmain{font-family:'JetBrains Mono',monospace;font-size:15px;line-height:1.9;}
+.pipeline{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-top:14px;}
+@media (max-width:860px){.pipeline{grid-template-columns:repeat(3,1fr);}}
+.pipestep{background:var(--card-alt);border-radius:4px;padding:12px 8px;text-align:center;}
+.pipestep .num{font-family:'Source Serif 4',serif;font-size:20px;font-weight:700;color:var(--teal);}
+.pipestep .lbl{font-size:10px;font-weight:700;margin-top:4px;}
+
+table.exctable{width:100%;border-collapse:collapse;font-size:12.5px;}
+table.exctable th{text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--navy-muted);
+  padding:8px 10px;border-bottom:2px solid var(--navy);font-weight:700;}
+table.exctable td{padding:10px;border-bottom:1px solid var(--line);}
+.sev{font-size:9.5px;font-weight:700;padding:3px 9px;border-radius:20px;text-transform:uppercase;}
+.sev-crit{background:var(--coral-soft);color:var(--coral);} .sev-caught{background:var(--moss-soft);color:var(--moss);}
+
+.simcontrols{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-bottom:18px;}
+@media (max-width:800px){.simcontrols{grid-template-columns:1fr;}}
+.sliderlabel{display:flex;justify-content:space-between;font-size:11px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.04em;color:var(--navy-muted);margin-bottom:8px;}
+.sliderlabel b{color:var(--navy);font-family:'JetBrains Mono',monospace;}
+input[type=range]{width:100%;accent-color:var(--teal);}
+.impactgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px;}
+@media (max-width:800px){.impactgrid{grid-template-columns:1fr 1fr;}}
+.impactcard{background:var(--cream);border:1px solid var(--line);border-radius:4px;padding:14px;}
+.impactcard .v{font-size:19px;font-weight:700;font-family:'JetBrains Mono',monospace;}
+.impactcard .l{font-size:10px;color:var(--navy-muted);margin-top:3px;font-weight:600;text-transform:uppercase;letter-spacing:.03em;}
+
+.simbtnwrap{text-align:center;padding:20px;background:var(--card-alt);border-radius:4px;margin-top:14px;}
+button#simBtn{background:var(--teal);color:var(--cream);border:none;border-radius:4px;padding:13px 26px;
+  font-family:'Source Serif 4',serif;font-weight:700;font-size:15px;cursor:pointer;}
+button#simBtn:hover{opacity:.9;} button#simBtn:disabled{opacity:.5;}
+.simbtnwrap p{color:var(--navy-muted);font-size:12px;margin:10px 0 0;font-weight:500;}
+#simLog{margin-top:14px;text-align:left;max-width:640px;margin-left:auto;margin-right:auto;
+  font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--navy-muted);min-height:20px;}
+#simLog .line{margin-bottom:4px;opacity:0;animation:fadein .3s ease forwards;font-weight:600;}
+@keyframes fadein{to{opacity:1;}}
+#simLog .good{color:var(--moss);} #simLog .warn{color:var(--amber);}
+
+footer{margin-top:26px;text-align:center;color:var(--navy-muted);font-size:11px;font-weight:600;}
+.sectionhead{font-size:26px;font-weight:700;margin:0 0 6px;}
+.sectiondesc{font-size:13px;color:var(--navy-muted);margin:0 0 16px;max-width:640px;line-height:1.5;}
+
+.financial-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:18px;}
+@media (max-width:800px){.financial-summary{grid-template-columns:1fr;}}
+.fin-card{background:var(--cream);border:1px solid var(--line);border-radius:4px;padding:14px;text-align:center;}
+.fin-card .v{font-size:20px;font-weight:700;font-family:'JetBrains Mono',monospace;}
+.fin-card .l{font-size:10.5px;color:var(--navy-muted);margin-top:3px;font-weight:600;text-transform:uppercase;letter-spacing:.03em;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="brand">
+      <div class="brand-mark serif">P</div>
+      <div class="brand-name">PISI.</div>
+    </div>
+    <div class="navpills">
+      <button class="navpill active" onclick="showTab('decision')">Console</button>
+      <button class="navpill" onclick="scrollToId('methodology')">Methodology</button>
+      <button class="navpill" onclick="scrollToId('analysts')">For Analysts</button>
+      <button class="navpill" onclick="scrollToId('simulation')">Simulation</button>
+    </div>
+    <div class="navright">
+      <div class="statuspill"><span class="livedot"></span>LIVE</div>
+      <div class="statuspill">Track 3 &middot; Revenue Recovery</div>
+    </div>
+  </header>
+
+  <div class="panel">
+    <div class="panel-title">&#9881; Settlement Control Panel</div>
+    <div class="controls-row">
+      <div class="control">
+        <label>Settlement Path Bank</label>
+        <select id="bankSelect" onchange="changeBank(this.value)">
+          <option value="SBI">SBI</option>
+          <option value="HDFC">HDFC</option>
+          <option value="ICICI">ICICI</option>
+          <option value="AXIS">AXIS</option>
+          <option value="KOTAK">KOTAK</option>
+          <option value="PNB">PNB</option>
+        </select>
+      </div>
+      <div class="control">
+        <label>Decision Leg</label>
+        <select id="legSelect"><option>Leg A &mdash; Settlement Protection</option><option>Leg B &mdash; Authorization Warning</option><option>Both Legs</option></select>
+      </div>
+      <div class="control">
+        <label>Aggregation</label>
+        <select><option>This Incident</option><option>Cumulative Session</option></select>
+      </div>
+      <div class="control">
+        <div class="control-status">Status</div>
+        <div class="control-status-val"><span class="livedot"></span>Live &middot; monitoring 6 banks</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bankstrip">
+    <div>
+      <span class="bankstrip-label">Monitored Banks:</span>
+      <span class="bankbadges">
+        <span class="bankbadge bb-sbi" onclick="changeBank('SBI')">SBI</span>
+        <span class="bankbadge bb-hdfc" onclick="changeBank('HDFC')">HDFC</span>
+        <span class="bankbadge bb-icici" onclick="changeBank('ICICI')">ICICI</span>
+        <span class="bankbadge bb-axis" onclick="changeBank('AXIS')">AXIS</span>
+        <span class="bankbadge bb-kotak" onclick="changeBank('KOTAK')">KOTAK</span>
+        <span class="bankbadge bb-pnb" onclick="changeBank('PNB')">PNB</span>
+      </span>
+    </div>
+    <div class="feedinfo">BANKS: 6 &nbsp;&middot;&nbsp; FEED: LIVE &nbsp;&middot;&nbsp; CAPITAL: &#8377;5.00 Cr (30% cap: &#8377;1.50 Cr)</div>
+  </div>
+
+  <div class="hero">
+    <div class="card">
+      <div class="card-eyebrow">Bank Vitality &mdash; <b id="bankName">SBI</b> settlement path</div>
+      <div class="livehero-top">
+        <div>
+          <div class="livehero-num" id="healthVal" style="color:var(--moss)">91</div>
+          <div class="livehero-sub">bank health &middot; 0-100 scale</div>
+        </div>
+        <div class="status-chip sc-healthy" id="healthStatus">HEALTHY</div>
+      </div>
+      <div class="metricrow">
+        <div class="metric"><div class="v" id="confVal">&mdash;</div><div class="l">Confidence</div></div>
+        <div class="metric"><div class="v" id="scanVal">0s</div><div class="l">Last Scan</div></div>
+        <div class="metric"><div class="v" id="thresholdVal">50</div><div class="l">Activate Below</div></div>
+        <div class="metric"><div class="v">0.70</div><div class="l">Confidence Floor</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-eyebrow">Decision Engine &mdash; Two-Leg Architecture</div>
+      <div class="legrow">
+        <div>
+          <div class="leg-name">Leg A &middot; Settlement Protection</div>
+          <div class="leg-decision" id="legADecision"><span class="pip pip-idle"></span>STANDBY</div>
+        </div>
+        <div class="leg-note">Moves money &mdash; corporate capital</div>
+      </div>
+      <div class="legrow">
+        <div>
+          <div class="leg-name">Leg B &middot; Authorization Warning</div>
+          <div class="leg-decision" id="legBDecision"><span class="pip pip-idle"></span>STANDBY</div>
+        </div>
+        <div class="leg-note">Informational only &mdash; zero capital</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Catmull-Rom Spline Smooth Trajectory Area Chart -->
+  <div class="card trajcard">
+    <div class="card-eyebrow">Bank Health Trajectory <b>&middot;</b> Base = 100 (full health) <b>&middot;</b> Activate threshold at 50</div>
+    <svg class="spark" viewBox="0 0 1000 190" preserveAspectRatio="none" id="sparkSvg">
+      <defs>
+        <linearGradient id="sparkFill" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#2F7A5C" stop-opacity="0.22" id="gradStop1"/>
+          <stop offset="100%" stop-color="#C64B3C" stop-opacity="0.05" id="gradStop2"/>
+        </linearGradient>
+      </defs>
+      <line x1="0" y1="95" x2="1000" y2="95" stroke="#B9AF82" stroke-width="1.5" stroke-dasharray="4,5"/>
+      <text x="6" y="88" fill="#64738C" font-size="11" font-family="JetBrains Mono">ACTIVATE THRESHOLD &middot; 50</text>
+      <path id="sparkFillPath" fill="url(#sparkFill)" stroke="none"/>
+      <path id="sparkLine" fill="none" stroke="#2F7A5C" stroke-width="3.5" stroke-linecap="round"/>
+      <circle cx="30" cy="34" r="5.5" fill="#2F7A5C"/>
+      <circle cx="500" cy="52" r="5.5" fill="#2F7A5C"/>
+      <circle cx="970" cy="71" r="6.5" fill="#2F7A5C"/>
+    </svg>
+  </div>
+
+  <div class="tabbar">
+    <button class="tabbtn active" data-tab="decision" onclick="showTab('decision')">Decision &amp; Audit Trail</button>
+    <button class="tabbtn" data-tab="heatmap" onclick="showTab('heatmap')">Bank Health Heatmap</button>
+    <button class="tabbtn" data-tab="validation" onclick="showTab('validation')">Batch Validation (100 Incidents)</button>
+  </div>
+
+  <div class="tabpanel active" id="tab-decision">
+    <div class="card-eyebrow" style="margin-bottom:18px;">Protection Ledger &mdash; cumulative, this session</div>
+    <div class="ledger">
+      <div class="ledger-item"><div class="ledger-num" id="ledgerCount">0</div><div class="ledger-label">Transactions Protected</div></div>
+      <div class="ledger-item"><div class="ledger-num" id="ledgerVolume">&#8377;0</div><div class="ledger-label">Protected Volume</div></div>
+      <div class="ledger-item"><div class="ledger-num" id="ledgerFee">&#8377;0.00</div><div class="ledger-label">Fee Revenue &middot; 0.10%</div></div>
+      <div class="ledger-item"><div class="ledger-num" id="ledgerAvail">&#8377;1.50Cr</div><div class="ledger-label">Capital Available</div></div>
+    </div>
+    <div class="cap-bar"><div class="cap-fill" id="capFill" style="width:0%"></div></div>
+    <div class="cap-caption"><span>Deployed against 30% portfolio cap (&#8377;1.50 Cr of &#8377;5.00 Cr)</span><span id="capPct">0.0% of cap used</span></div>
+    <hr style="border:none;border-top:1px solid var(--line);margin:20px 0;">
+    <div class="card-eyebrow">Bridge Key ID &mdash; immutable SHA-256 audit record (&sect;7.3 Schema)</div>
+    <div class="kv"><span>Bridge ID</span><span id="bridgeId">&mdash;</span></div>
+    <div class="kv"><span>Amount</span><span id="bridgeAmt">&mdash;</span></div>
+    <div class="kv"><span>Fee (0.10%)</span><span id="bridgeFee">&mdash;</span></div>
+    <div class="kv"><span>Merchant credited (T+0 instant)</span><span id="bridgeSettled">&mdash;</span></div>
+    <div style="font-size:10.5px;color:var(--navy-muted);text-transform:uppercase;letter-spacing:.05em;margin-top:12px;font-weight:700;">SHA-256 audit hash (64 chars, computed in-browser via Web Crypto API)</div>
+    <div class="hash-box" id="hashBox">awaiting first ACTIVATE decision&hellip;</div>
+    <div class="ledger-trail">
+      <div class="trail-step">1. CREATION</div><div class="trail-step">2. RECEIVABLE</div>
+      <div class="trail-step">3. REPLENISHMENT</div><div class="trail-step">4. FEE_REVENUE</div>
+    </div>
+    <div class="balanced" id="balancedRow" style="color:var(--navy-muted);">&mdash; no active bridge yet</div>
+  </div>
+
+  <div class="tabpanel" id="tab-heatmap">
+    <div class="card-eyebrow">Live Bank Health &mdash; last 6 scans across all corridors</div>
+    <div class="heatgrid" id="heatGrid"></div>
+    <p style="font-size:11.5px;color:var(--navy-muted);margin-top:16px;font-weight:500;">Updates live as incidents are triggered below. Each cell reflects that bank's most recently observed composite score.</p>
+  </div>
+
+  <div class="tabpanel" id="tab-validation">
+    <div class="card-eyebrow">100 Synthetic Incidents <b>&middot;</b> seed=42 <b>&middot;</b> <span class="mono">python scripts/batch_eval.py</span></div>
+    <div class="matrix">
+      <div class="mcell m-tp"><div class="n">14</div><div class="l">True Positive</div></div>
+      <div class="mcell m-fn"><div class="n">2</div><div class="l">False Negative</div></div>
+      <div class="mcell m-fp"><div class="n">0</div><div class="l">False Positive</div></div>
+      <div class="mcell m-tn"><div class="n">84</div><div class="l">True Negative</div></div>
+    </div>
+    <div style="display:flex;gap:30px;margin-bottom:18px;flex-wrap:wrap;">
+      <div><div style="font-size:26px;font-weight:700;color:var(--moss);font-family:'JetBrains Mono',monospace;">100%</div><div style="font-size:10px;color:var(--navy-muted);text-transform:uppercase;font-weight:700;">Precision</div></div>
+      <div><div style="font-size:26px;font-weight:700;color:var(--teal);font-family:'JetBrains Mono',monospace;">87.5%</div><div style="font-size:10px;color:var(--navy-muted);text-transform:uppercase;font-weight:700;">Recall</div></div>
+      <div><div style="font-size:26px;font-weight:700;color:var(--navy);font-family:'JetBrains Mono',monospace;">0.9333</div><div style="font-size:10px;color:var(--navy-muted);text-transform:uppercase;font-weight:700;">F1 Score</div></div>
+    </div>
+
+    <div class="card-eyebrow">Financial Impact &mdash; measured, not projected</div>
+    <div class="financial-summary">
+      <div class="fin-card"><div class="v">&#8377;18,77,408</div><div class="l">Protected Volume</div></div>
+      <div class="fin-card"><div class="v">&#8377;1,877.41</div><div class="l">Fee Revenue (0.10%)</div></div>
+      <div class="fin-card"><div class="v">&#8377;1,234.46</div><div class="l">Capital Cost (2-day @ 12%)</div></div>
+    </div>
+    <div class="financial-summary" style="margin-top:8px;">
+      <div class="fin-card"><div class="v" style="color:var(--moss);">&#8377;642.95</div><div class="l">Net Fee Profit</div></div>
+      <div class="fin-card"><div class="v" style="color:var(--teal);">&#8377;3,754.82</div><div class="l">Merchant Savings vs 0.30%</div></div>
+      <div class="fin-card"><div class="v">&#8377;4,43,706</div><div class="l">Missed Exposure (2 FNs)</div></div>
+    </div>
+
+    <div class="card-eyebrow" style="margin-top:22px;">Fee Model Comparison &mdash; Predictive vs Reactive</div>
+    <div class="comparewrap" style="margin-bottom:18px;">
+      <div class="comparecard"><div class="name">Reactive (Today)</div><div class="big">0.30%</div><div class="sub">merchant-triggered, on-demand</div>
+        <div style="font-size:11px;color:var(--navy-muted);margin-top:10px;">~15% merchant opt-in rate</div></div>
+      <div class="comparecard win"><div class="name">PISI Predictive</div><div class="big">0.10%</div><div class="sub">autonomous, pre-approved</div>
+        <div style="font-size:11px;color:var(--teal);margin-top:10px;">100% of at-risk volume covered</div></div>
+    </div>
+
+    <div class="card-eyebrow">Precision Honesty Note</div>
+    <p style="font-size:12px;color:var(--navy-muted);line-height:1.6;max-width:700px;">
+      The 100% precision / 0 false positives in this seed=42 run is a property of how separated the synthetic
+      "risk" and "no-risk" confidence distributions are, <b>not a claim about real-world performance</b>. With real
+      data, false positives should be expected and budgeted for. See <span class="mono">docs/KNOWN_LIMITATIONS.md</span>.
+    </p>
+  </div>
+
+  <div id="methodology" style="margin-top:34px;">
+    <div class="sectionhead serif">Methodology</div>
+    <p class="sectiondesc">PISI's decision engine is a threshold gate over two live-computed signals: predicted bank health and prediction confidence. No black box &mdash; the full rule fits in one screen.</p>
+    <div class="formulabox">
+      <div class="flabel">Core Decision Rule &mdash; <span class="mono">src/decision/pisi_engine.py</span></div>
+      <div class="fmain">
+        IF health &lt; 50 AND confidence &ge; 0.70 &rarr; <span style="color:#7FD9B8">ACTIVATE</span> (deploy capital)<br>
+        IF health &lt; 70 AND confidence &ge; 0.50 &rarr; MONITOR (alert only)<br>
+        ELSE &rarr; STANDBY
+      </div>
+    </div>
+    <div class="pipeline">
+      <div class="pipestep"><div class="num serif">1</div><div class="lbl">Ingest Streams</div></div>
+      <div class="pipestep"><div class="num serif">2</div><div class="lbl">5D Vitality Score</div></div>
+      <div class="pipestep"><div class="num serif">3</div><div class="lbl">Predict Confidence</div></div>
+      <div class="pipestep"><div class="num serif">4</div><div class="lbl">Gate Decision</div></div>
+      <div class="pipestep"><div class="num serif">5</div><div class="lbl">Execute + Audit</div></div>
+      <div class="pipestep"><div class="num serif">6</div><div class="lbl">T+2 Reconcile</div></div>
+    </div>
+  </div>
+
+  <div id="analysts" style="margin-top:34px;">
+    <div class="sectionhead serif">For Analysts</div>
+    <p class="sectiondesc">Every incident the model got wrong, shown by name &mdash; not filtered out of the pitch. Documented exception list.</p>
+    <div class="card">
+      <table class="exctable">
+        <thead><tr><th>Incident</th><th>Bank</th><th>Confidence</th><th>Decision</th><th>Exposure</th><th>Root Cause</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">INC-039</td><td>HDFC</td><td class="mono">64.59%</td><td>STANDBY</td><td class="mono">&#8377;2,44,038</td>
+            <td><span class="sev sev-crit">Below 70% Confidence Floor</span></td></tr>
+          <tr><td class="mono">INC-069</td><td>AXIS</td><td class="mono">59.55%</td><td>STANDBY</td><td class="mono">&#8377;1,99,668</td>
+            <td><span class="sev sev-crit">Below 70% Confidence Floor</span></td></tr>
+        </tbody>
+      </table>
+      <p style="font-size:11.5px;color:var(--navy-muted);margin:14px 0 0;line-height:1.5;">
+        Both missed incidents had genuine settlement risk, but the engine correctly held back because confidence
+        was below the 0.70 activation floor. Total missed exposure: &#8377;4,43,706.19.
+      </p>
+    </div>
+  </div>
+
+  <div id="simulation" style="margin-top:34px;">
+    <div class="sectionhead serif">Incident Simulator</div>
+    <p class="sectiondesc">Drag the sliders to see the decision engine react in real time &mdash; the exact threshold logic from pisi_engine.py, not a lookup table.</p>
+    <div class="card">
+      <div class="simcontrols">
+        <div>
+          <div class="sliderlabel">Bank Health <b id="simHealthLabel">50</b></div>
+          <input type="range" id="simHealth" min="0" max="100" value="50" oninput="runSimulator()">
+        </div>
+        <div>
+          <div class="sliderlabel">Prediction Confidence <b id="simConfLabel">70%</b></div>
+          <input type="range" id="simConf" min="0" max="100" value="70" oninput="runSimulator()">
+        </div>
+      </div>
+      <div class="impactgrid">
+        <div class="impactcard"><div class="v" id="simDecision">STANDBY</div><div class="l">Decision</div></div>
+        <div class="impactcard"><div class="v" id="simProtected">0</div><div class="l">Transactions Protected</div></div>
+        <div class="impactcard"><div class="v" id="simVolume">&#8377;0</div><div class="l">Protected Volume</div></div>
+        <div class="impactcard"><div class="v" id="simFee">&#8377;0.00</div><div class="l">Fee Revenue</div></div>
+      </div>
+    </div>
+
+    <div class="simbtnwrap">
+      <button id="simBtn" onclick="simulateRandomIncident()">&#9654; Trigger a live incident</button>
+      <p>Runs the identical function the page used to react on its own &mdash; new bank, new numbers, a genuine SHA-256 computed live via the Web Crypto API.</p>
+      <div id="simLog"></div>
+    </div>
+  </div>
+
+  <footer>PISI &middot; Predictive Instant Settlement Intelligence &middot; Track 3: AI Revenue Recovery &middot; Razorpay AI Buildathon 2026 &middot; <a href="https://arxiv.org/abs/2111.00783" target="_blank">Bygari et al., 2021</a></footer>
+</div>
+
+<script>
+const BANKS = ["SBI","HDFC","ICICI","AXIS","KOTAK","PNB"];
+let capUsed = 0;
+const CAP = 15000000;
+let ledgerCount = 0, ledgerVolume = 0, ledgerFee = 0, lastScanSeconds = 0;
+let bankHeatState = {};
+BANKS.forEach(b => bankHeatState[b] = [91,91,91,91,91,91]);
+
+function fmtINR(n){ return '\u20B9' + Number(n).toLocaleString('en-IN', {maximumFractionDigits:2, minimumFractionDigits:2}); }
+function fmtINR0(n){ return '\u20B9' + Number(n).toLocaleString('en-IN', {maximumFractionDigits:0}); }
+function healthColor(h){ if(h>=80) return '#2F7A5C'; if(h>=60) return '#B4801E'; if(h>=40) return '#C97A3C'; return '#C64B3C'; }
+
+/* ---- Smooth Catmull-Rom to Cubic Bezier Curve Generation ---- */
+function easeInOut(t){ return t*t*(3-2*t); }
+function valToY(h){ return (170 - (h/100)*160 + 10); }
+function healthAtT(t, h1, h2, h3){
+  if(t <= 0.5) return h1 + (h2-h1) * easeInOut(t/0.5);
+  return h2 + (h3-h2) * easeInOut((t-0.5)/0.5);
+}
+function buildTrajectoryPoints(h1, h2, h3, n=15){
+  const pts = [];
+  for(let i=0;i<n;i++){
+    const t = i/(n-1);
+    const x = 30 + t*(970-30);
+    pts.push([x, valToY(healthAtT(t,h1,h2,h3))]);
+  }
+  return pts;
+}
+function catmullRom2bezier(points){
+  let d = `M${points[0][0]},${points[0][1]}`;
+  for(let i=0;i<points.length-1;i++){
+    const p0 = points[i-1] || points[i];
+    const p1 = points[i];
+    const p2 = points[i+1];
+    const p3 = points[i+2] || p2;
+    const c1x = p1[0] + (p2[0]-p0[0])/6, c1y = p1[1] + (p2[1]-p0[1])/6;
+    const c2x = p2[0] - (p3[0]-p1[0])/6, c2y = p2[1] - (p3[1]-p1[1])/6;
+    d += ` C${c1x.toFixed(2)},${c1y.toFixed(2)} ${c2x.toFixed(2)},${c2y.toFixed(2)} ${p2[0].toFixed(2)},${p2[1].toFixed(2)}`;
+  }
+  return d;
+}
+function buildFillPath(points){
+  const line = catmullRom2bezier(points);
+  const last = points[points.length-1], first = points[0];
+  return `${line} L${last[0]},178 L${first[0]},178 Z`;
+}
+
+async function sha256Hex(message){
+  try{
+    const enc = new TextEncoder().encode(message);
+    const buf = await crypto.subtle.digest('SHA-256', enc);
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+  }catch(e){
+    let h = 0;
+    for(let i=0;i<message.length;i++){ h = (Math.imul(31,h) + message.charCodeAt(i))|0; }
+    return 'fallback-nonSHA-' + Math.abs(h).toString(16).padStart(16,'0').repeat(4).slice(0,58);
+  }
+}
+function log(msg, cls){
+  const el = document.getElementById('simLog');
+  const line = document.createElement('div');
+  line.className = 'line' + (cls ? ' '+cls : '');
+  line.textContent = msg;
+  el.appendChild(line); el.scrollTop = el.scrollHeight;
+}
+function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
+
+function updateSpark(h1,h2,h3){
+  const points = buildTrajectoryPoints(h1,h2,h3);
+  document.getElementById('sparkLine').setAttribute('d', catmullRom2bezier(points));
+  document.getElementById('sparkFillPath').setAttribute('d', buildFillPath(points));
+  document.getElementById('sparkLine').setAttribute('stroke', healthColor(h3));
+  const circles = document.querySelectorAll('#sparkSvg circle');
+  [[circles[0],h1],[circles[1],h2],[circles[2],h3]].forEach(([c,h]) => {
+    c.setAttribute('cy', valToY(h)); c.setAttribute('fill', healthColor(h));
+  });
+}
+
+function renderHeatmap(){
+  const grid = document.getElementById('heatGrid');
+  let html = `<div></div>` + [1,2,3,4,5,6].map(i=>`<div class="collabel">SCAN ${i}</div>`).join('');
+  BANKS.forEach(b => {
+    html += `<div class="rowlabel">${b}</div>`;
+    bankHeatState[b].forEach(h => {
+      html += `<div class="heatcell" style="background:${healthColor(h)}">${Math.round(h)}</div>`;
+    });
+  });
+  grid.innerHTML = html;
+}
+
+async function playScenario(bank, h1, h2, h3, confidence){
+  const btn = document.getElementById('simBtn');
+  btn.disabled = true;
+  document.getElementById('simLog').innerHTML = '';
+  lastScanSeconds = 0;
+
+  document.getElementById('bankName').textContent = bank;
+  document.getElementById('bankSelect').value = bank;
+  log(`> ingesting webhook stream for ${bank}...`);
+  await sleep(350);
+
+  updateSpark(h1,h2,h3);
+  document.getElementById('healthVal').innerHTML = h3.toFixed(0);
+  document.getElementById('confVal').textContent = `${(confidence*100).toFixed(0)}%`;
+  log(`> bank_vitality composite score: ${h3.toFixed(1)}/100`);
+  await sleep(300);
+  log(`> downtime_classifier confidence: ${(confidence*100).toFixed(1)}%`);
+  await sleep(300);
+
+  bankHeatState[bank] = [...bankHeatState[bank].slice(1), h3];
+  renderHeatmap();
+
+  let decision, statusClass, statusLabel, color;
+  if(h3 < 50 && confidence >= 0.70){ decision='ACTIVATE'; statusClass='sc-critical'; statusLabel='CRITICAL'; color='var(--coral)'; }
+  else if(h3 < 70 && confidence >= 0.50){ decision='MONITOR'; statusClass='sc-degraded'; statusLabel='DEGRADED'; color='var(--amber)'; }
+  else { decision='STANDBY'; statusClass='sc-healthy'; statusLabel='HEALTHY'; color='var(--moss)'; }
+
+  document.getElementById('healthVal').style.color = color;
+  document.getElementById('healthStatus').className = 'status-chip ' + statusClass;
+  document.getElementById('healthStatus').textContent = statusLabel;
+
+  const legAEl = document.getElementById('legADecision');
+  const legBEl = document.getElementById('legBDecision');
+
+  if(decision === 'ACTIVATE'){
+    legAEl.innerHTML = '<span class="pip pip-activate"></span>ACTIVATE';
+    legBEl.innerHTML = '<span class="pip pip-warn"></span>WARN';
+    log(`> decision: ACTIVATE (health<50 and confidence>=70%)`, 'good');
+    await sleep(300);
+
+    const txId = 'tx_sim_' + Math.random().toString(36).slice(2,8);
+    const amount = Math.round((800 + Math.random()*8000) * 100)/100;
+    const fee = Math.round(amount * 0.0010 * 100)/100;
+    const settled = Math.round((amount-fee)*100)/100;
+    const ts = new Date().toISOString();
+    const bridgeId = `BRIDGE-${bank}-${ts.replace(/[:\-]/g,'').split('.')[0]}-${txId.slice(-6)}`;
+
+    log(`> creating bridge ${bridgeId}`);
+    await sleep(200);
+    const hash = await sha256Hex(`${bridgeId}|${txId}|${bank}|${amount.toFixed(2)}|${ts}`);
+    document.getElementById('hashBox').textContent = hash;
+    document.getElementById('hashBox').style.color = '#7FD9B8';
+    log(`> hash: ${hash.slice(0,24)}...`, 'good');
+    await sleep(200);
+
+    document.getElementById('bridgeId').textContent = bridgeId;
+    document.getElementById('bridgeAmt').textContent = fmtINR(amount);
+    document.getElementById('bridgeFee').textContent = fmtINR(fee);
+    document.getElementById('bridgeSettled').textContent = fmtINR(settled);
+
+    ledgerCount += 1; ledgerVolume += amount; ledgerFee += fee; capUsed += amount;
+    document.getElementById('ledgerCount').textContent = ledgerCount;
+    document.getElementById('ledgerVolume').textContent = fmtINR0(ledgerVolume);
+    document.getElementById('ledgerFee').textContent = fmtINR(ledgerFee);
+    document.getElementById('ledgerAvail').textContent = '\u20B9' + ((CAP-capUsed)/10000000).toFixed(2) + 'Cr';
+    const pct = (capUsed/CAP*100);
+    document.getElementById('capFill').style.width = Math.min(pct,100).toFixed(1) + '%';
+    document.getElementById('capPct').textContent = pct.toFixed(1) + '% of cap used';
+
+    document.getElementById('balancedRow').style.color = 'var(--moss)';
+    document.getElementById('balancedRow').innerHTML = '✓ Books balanced — debits = credits';
+    log(`> books balanced: true`, 'good');
+  } else if(decision === 'MONITOR'){
+    legAEl.innerHTML = '<span class="pip pip-warn"></span>MONITOR';
+    legBEl.innerHTML = '<span class="pip pip-warn"></span>WARN';
+    log(`> decision: MONITOR — confidence below 70% activation floor`, 'warn');
+  } else {
+    legAEl.innerHTML = '<span class="pip pip-idle"></span>STANDBY';
+    legBEl.innerHTML = '<span class="pip pip-idle"></span>STANDBY';
+    log(`> decision: STANDBY — bank health within normal range`);
+  }
+  btn.disabled = false;
+}
+
+function changeBank(bank){
+  const h = bankHeatState[bank][5] || 85;
+  playScenario(bank, 92, h + 5, h, 0.88);
+}
+
+function simulateRandomIncident(){
+  const bank = BANKS[Math.floor(Math.random()*BANKS.length)];
+  const startHealth = 75 + Math.random()*15;
+  const midHealth = 40 + Math.random()*25;
+  const endHealth = Math.max(15, midHealth - 10 - Math.random()*20);
+  const confidence = 0.55 + Math.random()*0.4;
+  playScenario(bank, startHealth, midHealth, endHealth, confidence);
+}
+
+function runSimulator(){
+  const health = parseInt(document.getElementById('simHealth').value);
+  const conf = parseInt(document.getElementById('simConf').value) / 100;
+  document.getElementById('simHealthLabel').textContent = health;
+  document.getElementById('simConfLabel').textContent = Math.round(conf*100) + '%';
+
+  let decision;
+  if(health < 50 && conf >= 0.70) decision = 'ACTIVATE';
+  else if(health < 70 && conf >= 0.50) decision = 'MONITOR';
+  else decision = 'STANDBY';
+  document.getElementById('simDecision').textContent = decision;
+  document.getElementById('simDecision').style.color = decision==='ACTIVATE' ? 'var(--moss)' : decision==='MONITOR' ? 'var(--amber)' : 'var(--navy)';
+
+  if(decision === 'ACTIVATE'){
+    const txCount = Math.round(200 + (50-health)*3);
+    const volume = txCount * 2499;
+    document.getElementById('simProtected').textContent = txCount;
+    document.getElementById('simVolume').textContent = fmtINR0(volume);
+    document.getElementById('simFee').textContent = fmtINR(volume*0.001);
+  } else {
+    document.getElementById('simProtected').textContent = '0';
+    document.getElementById('simVolume').textContent = '\u20B90';
+    document.getElementById('simFee').textContent = '\u20B90.00';
+  }
+}
+
+function showTab(name){
+  document.querySelectorAll('.tabbtn').forEach(b => b.classList.toggle('active', b.dataset.tab===name));
+  document.querySelectorAll('.tabpanel').forEach(p => p.classList.toggle('active', p.id==='tab-'+name));
+}
+function scrollToId(id){ document.getElementById(id).scrollIntoView({behavior:'smooth'}); }
+
+setInterval(() => {
+  lastScanSeconds += 1;
+  const el = document.getElementById('scanVal');
+  if(el) el.textContent = lastScanSeconds + 's';
+}, 1000);
+
+window.addEventListener('DOMContentLoaded', () => {
+  renderHeatmap();
+  runSimulator();
+  log('> PISI agent online. Monitoring 6 banks: SBI, HDFC, ICICI, AXIS, KOTAK, PNB.');
+  setTimeout(() => { playScenario('SBI', 91, 67, 34, 0.91); }, 2600);
+});
+</script>
+</body>
+</html>

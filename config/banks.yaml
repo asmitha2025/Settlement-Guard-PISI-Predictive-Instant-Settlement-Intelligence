@@ -1,0 +1,46 @@
+# Bank Configuration & Maintenance Windows (IST 24h)
+banks:
+  SBI:
+    name: "State Bank of India"
+    base_health: 78
+    maintenance_windows:
+      - start_hour: 2
+        end_hour: 4
+      - start_hour: 14
+        end_hour: 15
+    failure_spike_prob: 0.12
+  HDFC:
+    name: "HDFC Bank"
+    base_health: 92
+    maintenance_windows:
+      - start_hour: 2
+        end_hour: 4
+    failure_spike_prob: 0.05
+  ICICI:
+    name: "ICICI Bank"
+    base_health: 88
+    maintenance_windows:
+      - start_hour: 1
+        end_hour: 3
+    failure_spike_prob: 0.06
+  AXIS:
+    name: "Axis Bank"
+    base_health: 82
+    maintenance_windows:
+      - start_hour: 3
+        end_hour: 5
+    failure_spike_prob: 0.08
+  KOTAK:
+    name: "Kotak Mahindra Bank"
+    base_health: 85
+    maintenance_windows:
+      - start_hour: 1
+        end_hour: 2
+    failure_spike_prob: 0.07
+  PNB:
+    name: "Punjab National Bank"
+    base_health: 70
+    maintenance_windows:
+      - start_hour: 9
+        end_hour: 11
+    failure_spike_prob: 0.15
