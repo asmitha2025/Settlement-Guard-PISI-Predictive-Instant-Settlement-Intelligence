@@ -51,8 +51,8 @@ class TestWebhookSecurity(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
         data = response.json()
-        self.assertEqual(data["status"], "processed")
-        self.assertEqual(data["action"], "INGESTED_CAPTURE")
+        self.assertEqual(data["status"], "ok")
+        self.assertEqual(data["event"], "payment.captured")
 
     def test_webhook_invalid_signature_rejected(self):
         payload = {"event": "payment.captured", "payload": {}}
