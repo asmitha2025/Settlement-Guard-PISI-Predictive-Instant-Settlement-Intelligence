@@ -1,5 +1,5 @@
 """
-PISI FastAPI Server — Layer 6 REST API · v2.2 (Autonomous Event Loop)
+PISI FastAPI Server — Layer 6 REST API · v2.3 (Multi-Route Webhook Alias)
 Track 3: AI Revenue Recovery — Razorpay AI Buildathon 2026
 """
 import sys
@@ -28,7 +28,7 @@ from src.monitoring.metrics import MetricsCollector, DriftDetector
 app = FastAPI(
     title="PISI REST API",
     description="Predictive Instant Settlement Intelligence — Track 3: AI Revenue Recovery",
-    version="2.2.0"
+    version="2.3.0"
 )
 
 # Instantiate Core System Stack
@@ -76,20 +76,24 @@ class AuthorizationEvaluationInput(BaseModel):
 
 # --- API Endpoints ---
 
+@app.get("/")
 @app.get("/health")
 def health_check():
     return {
         "service": "PISI — Predictive Instant Settlement Intelligence",
-        "version": "2.2.0",
+        "version": "2.3.0",
         "track": "Track 3: AI Revenue Recovery",
         "status": "operational",
         "timestamp": datetime.now().isoformat()
     }
 
+@app.post("/")
 @app.post("/webhook/razorpay")
+@app.post("/webhooks/razorpay")
 async def razorpay_webhook(request: Request, x_razorpay_signature: Optional[str] = Header(None)):
     """
     Razorpay HMAC-SHA256 Webhook Receiver.
+    Accepts webhooks on /, /webhook/razorpay, and /webhooks/razorpay.
     Validates signature, ingests telemetry events, updates 5D Vitality,
     and automatically triggers Leg A evaluation if bank degradation is detected.
     """
@@ -132,7 +136,7 @@ async def razorpay_webhook(request: Request, x_razorpay_signature: Optional[str]
         )
         processed_action = "INGESTED_CAPTURE"
 
-    elif event_type in ["payment.failed", "bank.error"]:
+    elif event_type in ["payment.failed", "bank.error", "payment.downtime.started", "payment.downtime.updated"]:
         bank = entity_data.get("bank", "SBI")
         amount = float(entity_data.get("amount", 0)) / 100.0
         error_code = entity_data.get("error_code", "bank_technical_error")
