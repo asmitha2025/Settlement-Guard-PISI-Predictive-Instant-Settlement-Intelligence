@@ -2,15 +2,18 @@
 PISI Batch Evaluation Script
 Track 3: AI Revenue Recovery — Razorpay AI Buildathon 2026
 
-Runs 100 synthetic incidents (seed=42), computes genuine precision/recall/cost,
+Runs 1,000 synthetic incidents (default seed=42), computes genuine precision/recall/cost,
 and prints a documented exception list of every case PISI got wrong.
 
 Run:
-    python scripts/batch_eval.py
+    python scripts/batch_eval.py                # defaults to n=1000, seed=42
+    python scripts/batch_eval.py --n 100        # runs 100 incidents
+    python scripts/batch_eval.py --n 1000 --seed 7
 """
 import sys
 import os
 import json
+import argparse
 from datetime import datetime
 
 if sys.platform == 'win32':
@@ -33,7 +36,7 @@ ANNUAL_COC       = 0.12    # illustrative cost-of-capital
 BRIDGE_DAYS      = 2       # T+2 standard settlement
 
 
-def run_batch_evaluation(num_incidents=100, seed=42):
+def run_batch_evaluation(num_incidents=1000, seed=42):
     print("=" * 80)
     print("  PISI BATCH EVALUATION SUITE · Track 3 AI Revenue Recovery")
     print(f"  {num_incidents} synthetic incidents · seed={seed}")
@@ -155,13 +158,21 @@ def run_batch_evaluation(num_incidents=100, seed=42):
         'merchant_fee_savings': round(merchant_savings, 2),
         'exceptions': exceptions
     }
-    with open(os.path.join(output_dir, 'batch_eval_results.json'), 'w') as f:
-        json.dump(result_obj, f, indent=2)
-
-    print(f"\n  Full results saved to: output/batch_eval_results.json")
+    try:
+        with open(os.path.join(output_dir, 'batch_eval_results.json'), 'w') as f:
+            json.dump(result_obj, f, indent=2)
+        print(f"\n  Full results saved to: output/batch_eval_results.json")
+    except Exception as e:
+        print(f"\n  Note: Could not write output file ({e}), continuing in-memory")
     print("=" * 80)
     return result_obj
 
 
 if __name__ == "__main__":
-    run_batch_evaluation(100, seed=42)
+    parser = argparse.ArgumentParser(description="PISI Batch Evaluation")
+    parser.add_argument("--n", type=int, default=1000,
+                        help="Number of incidents to simulate (default: 1000)")
+    parser.add_argument("--seed", type=int, default=42,
+                        help="Random seed (default: 42)")
+    args = parser.parse_args()
+    run_batch_evaluation(num_incidents=args.n, seed=args.seed)

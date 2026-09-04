@@ -33,6 +33,17 @@ wheels/
 .coverage
 htmlcov/
 
+# Build Artifacts & Output
+output/
+*.pptx
+*.pdf
+
 # Operating System
 .DS_Store
 Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
