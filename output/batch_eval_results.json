@@ -1,10 +1,10 @@
 {
-  "evaluation_timestamp": "2026-09-02T22:13:59.509243",
+  "evaluation_timestamp": "2026-09-04T20:20:44.249164",
   "seed": 42,
-  "num_incidents": 100,
+  "num_incidents": 1000,
   "genuine_risk_count": 16,
   "true_positives": 14,
-  "true_negatives": 84,
+  "true_negatives": 984,
   "false_positives": 0,
   "false_negatives": 2,
   "precision": 1.0,

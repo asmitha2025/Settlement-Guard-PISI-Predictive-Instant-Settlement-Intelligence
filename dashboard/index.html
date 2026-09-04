@@ -324,6 +324,7 @@ footer{margin-top:26px;text-align:center;color:var(--navy-muted);font-size:11px;
 
   <div class="tabbar">
     <button class="tabbtn active" data-tab="decision" onclick="showTab('decision')">Decision &amp; Audit Trail</button>
+    <button class="tabbtn" data-tab="arearisk" onclick="showTab('arearisk')">📍 Regional Risk Heatmap</button>
     <button class="tabbtn" data-tab="heatmap" onclick="showTab('heatmap')">Bank Health Heatmap</button>
     <button class="tabbtn" data-tab="validation" onclick="showTab('validation')">Batch Validation (100 Incidents)</button>
   </div>
@@ -338,6 +339,39 @@ footer{margin-top:26px;text-align:center;color:var(--navy-muted);font-size:11px;
     </div>
     <div class="cap-bar"><div class="cap-fill" id="capFill" style="width:0%"></div></div>
     <div class="cap-caption"><span>Deployed against 30% portfolio cap (&#8377;1.50 Cr of &#8377;5.00 Cr)</span><span id="capPct">0.0% of cap used</span></div>
+
+    <!-- AREA RISK INDICATOR PANEL -->
+    <div style="background:#fff;border:1.5px solid var(--line);border-left:5px solid var(--coral);border-radius:4px;padding:14px 18px;margin:18px 0;">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
+        <div style="font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--coral);display:flex;align-items:center;gap:6px;">
+          <span>📍</span> Area Risk Panel &mdash; Regional Exposure by Merchant Hub
+        </div>
+        <span id="areaRiskBadge" style="background:var(--coral-soft);color:var(--coral);font-size:11px;font-weight:700;padding:2px 9px;border-radius:12px;">HIGH EXPOSURE</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));gap:12px;">
+        <div style="background:var(--cream);padding:9px 12px;border-radius:4px;border:1px solid var(--line);">
+          <div style="font-size:11px;color:var(--navy-muted);font-weight:600;">📍 Maharashtra</div>
+          <div style="font-size:15px;font-weight:800;font-family:'JetBrains Mono',monospace;color:var(--navy);" id="riskMH">3,412 txs at risk</div>
+          <div style="font-size:11px;color:var(--coral);font-weight:700;" id="volMH">&#8377;85.2L volume</div>
+        </div>
+        <div style="background:var(--cream);padding:9px 12px;border-radius:4px;border:1px solid var(--line);">
+          <div style="font-size:11px;color:var(--navy-muted);font-weight:600;">📍 Karnataka</div>
+          <div style="font-size:15px;font-weight:800;font-family:'JetBrains Mono',monospace;color:var(--navy);" id="riskKA">2,108 txs at risk</div>
+          <div style="font-size:11px;color:var(--coral);font-weight:700;" id="volKA">&#8377;52.7L volume</div>
+        </div>
+        <div style="background:var(--cream);padding:9px 12px;border-radius:4px;border:1px solid var(--line);">
+          <div style="font-size:11px;color:var(--navy-muted);font-weight:600;">📍 Delhi-NCR</div>
+          <div style="font-size:15px;font-weight:800;font-family:'JetBrains Mono',monospace;color:var(--navy);" id="riskDL">1,876 txs at risk</div>
+          <div style="font-size:11px;color:var(--coral);font-weight:700;" id="volDL">&#8377;46.9L volume</div>
+        </div>
+        <div style="background:var(--cream);padding:9px 12px;border-radius:4px;border:1px solid var(--line);">
+          <div style="font-size:11px;color:var(--navy-muted);font-weight:600;">📍 Tamil Nadu</div>
+          <div style="font-size:15px;font-weight:800;font-family:'JetBrains Mono',monospace;color:var(--navy);" id="riskTN">1,454 txs at risk</div>
+          <div style="font-size:11px;color:var(--amber);font-weight:700;" id="volTN">&#8377;36.3L volume</div>
+        </div>
+      </div>
+    </div>
+
     <hr style="border:none;border-top:1px solid var(--line);margin:20px 0;">
     <div class="card-eyebrow">Bridge Key ID &mdash; immutable SHA-256 audit record (&sect;7.3 Schema)</div>
     <div class="kv"><span>Bridge ID</span><span id="bridgeId">&mdash;</span></div>
@@ -351,6 +385,99 @@ footer{margin-top:26px;text-align:center;color:var(--navy-muted);font-size:11px;
       <div class="trail-step">3. REPLENISHMENT</div><div class="trail-step">4. FEE_REVENUE</div>
     </div>
     <div class="balanced" id="balancedRow" style="color:var(--navy-muted);">&mdash; no active bridge yet</div>
+  </div>
+
+  <!-- REGIONAL RISK HEATMAP TABPANEL -->
+  <div class="tabpanel" id="tab-arearisk">
+    <div class="card-eyebrow">Geographic Exposure &mdash; Regional Corridor Vulnerability Map</div>
+    <div style="display:grid;grid-template-columns:2fr 1fr;gap:20px;margin-bottom:20px;">
+      <div class="card" style="padding:18px;">
+        <div style="font-size:13px;font-weight:700;text-transform:uppercase;color:var(--navy);margin-bottom:14px;">🇮🇳 Top At-Risk State Corridors (Ranked by Captured Volume)</div>
+        <table style="width:100%;border-collapse:collapse;font-size:13px;">
+          <thead>
+            <tr style="border-bottom:1.5px solid var(--line);text-align:left;color:var(--navy-muted);font-size:11px;text-transform:uppercase;">
+              <th style="padding:8px 4px;">Region / State</th>
+              <th style="padding:8px 4px;">Merchant Hub</th>
+              <th style="padding:8px 4px;">At-Risk Txs</th>
+              <th style="padding:8px 4px;">Trapped Volume</th>
+              <th style="padding:8px 4px;">Corridor Risk</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom:1px solid var(--line);">
+              <td style="padding:10px 4px;font-weight:700;">Maharashtra</td>
+              <td style="padding:10px 4px;color:var(--navy-muted);">Mumbai, Pune</td>
+              <td style="padding:10px 4px;font-family:'JetBrains Mono',monospace;" id="tabMHTxs">3,412</td>
+              <td style="padding:10px 4px;font-family:'JetBrains Mono',monospace;font-weight:700;" id="tabMHVol">&#8377;85.2 Lakhs</td>
+              <td style="padding:10px 4px;"><span class="status-chip sc-critical" style="font-size:10px;" id="badgeMH">CRITICAL</span></td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--line);">
+              <td style="padding:10px 4px;font-weight:700;">Karnataka</td>
+              <td style="padding:10px 4px;color:var(--navy-muted);">Bengaluru</td>
+              <td style="padding:10px 4px;font-family:'JetBrains Mono',monospace;" id="tabKATxs">2,108</td>
+              <td style="padding:10px 4px;font-family:'JetBrains Mono',monospace;font-weight:700;" id="tabKAVol">&#8377;52.7 Lakhs</td>
+              <td style="padding:10px 4px;"><span class="status-chip sc-critical" style="font-size:10px;" id="badgeKA">CRITICAL</span></td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--line);">
+              <td style="padding:10px 4px;font-weight:700;">Delhi-NCR</td>
+              <td style="padding:10px 4px;color:var(--navy-muted);">Delhi, Gurgaon, Noida</td>
+              <td style="padding:10px 4px;font-family:'JetBrains Mono',monospace;" id="tabDLTxs">1,876</td>
+              <td style="padding:10px 4px;font-family:'JetBrains Mono',monospace;font-weight:700;" id="tabDLVol">&#8377;46.9 Lakhs</td>
+              <td style="padding:10px 4px;"><span class="status-chip sc-critical" style="font-size:10px;" id="badgeDL">CRITICAL</span></td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--line);">
+              <td style="padding:10px 4px;font-weight:700;">Tamil Nadu</td>
+              <td style="padding:10px 4px;color:var(--navy-muted);">Chennai, Coimbatore</td>
+              <td style="padding:10px 4px;font-family:'JetBrains Mono',monospace;" id="tabTNTxs">1,454</td>
+              <td style="padding:10px 4px;font-family:'JetBrains Mono',monospace;font-weight:700;" id="tabTNVol">&#8377;36.3 Lakhs</td>
+              <td style="padding:10px 4px;"><span class="status-chip sc-degraded" style="font-size:10px;" id="badgeTN">ELEVATED</span></td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--line);">
+              <td style="padding:10px 4px;font-weight:700;">Telangana</td>
+              <td style="padding:10px 4px;color:var(--navy-muted);">Hyderabad</td>
+              <td style="padding:10px 4px;font-family:'JetBrains Mono',monospace;" id="tabTSTxs">1,120</td>
+              <td style="padding:10px 4px;font-family:'JetBrains Mono',monospace;font-weight:700;" id="tabTSVol">&#8377;28.0 Lakhs</td>
+              <td style="padding:10px 4px;"><span class="status-chip sc-degraded" style="font-size:10px;" id="badgeTS">ELEVATED</span></td>
+            </tr>
+            <tr>
+              <td style="padding:10px 4px;font-weight:700;">Gujarat</td>
+              <td style="padding:10px 4px;color:var(--navy-muted);">Ahmedabad, Surat</td>
+              <td style="padding:10px 4px;font-family:'JetBrains Mono',monospace;" id="tabGJTxs">980</td>
+              <td style="padding:10px 4px;font-family:'JetBrains Mono',monospace;font-weight:700;" id="tabGJVol">&#8377;24.5 Lakhs</td>
+              <td style="padding:10px 4px;"><span class="status-chip sc-healthy" style="font-size:10px;" id="badgeGJ">NORMAL</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card" style="padding:18px;">
+        <div style="font-size:13px;font-weight:700;text-transform:uppercase;color:var(--navy);margin-bottom:14px;">📊 Regional Concentration</div>
+        <div style="margin-bottom:16px;">
+          <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:700;margin-bottom:4px;">
+            <span>West Corridor (MH, GJ)</span>
+            <span id="pctWest">42%</span>
+          </div>
+          <div class="cap-bar"><div class="cap-fill" id="barWest" style="width:42%;background:var(--coral);"></div></div>
+        </div>
+        <div style="margin-bottom:16px;">
+          <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:700;margin-bottom:4px;">
+            <span>South Corridor (KA, TN, TS)</span>
+            <span id="pctSouth">35%</span>
+          </div>
+          <div class="cap-bar"><div class="cap-fill" id="barSouth" style="width:35%;background:var(--amber);"></div></div>
+        </div>
+        <div style="margin-bottom:16px;">
+          <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:700;margin-bottom:4px;">
+            <span>North Corridor (DL, UP, HR)</span>
+            <span id="pctNorth">23%</span>
+          </div>
+          <div class="cap-bar"><div class="cap-fill" id="barNorth" style="width:23%;background:var(--moss);"></div></div>
+        </div>
+        <div style="background:var(--card-alt);border-radius:4px;padding:12px;font-size:12px;color:var(--navy);line-height:1.5;margin-top:16px;">
+          <strong>PISI Autonomous Defense:</strong> When a bank degrades, PISI deploys pre-approved advances proportionately across regional merchant accounts, protecting local payroll and supplier cycles before manual tickets can be filed.
+        </div>
+      </div>
+    </div>
   </div>
 
   <div class="tabpanel" id="tab-heatmap">
@@ -567,6 +694,109 @@ function renderHeatmap(){
   grid.innerHTML = html;
 }
 
+function updateAreaRisk(bank, decision, health=85, conf=0.9){
+  const badge = document.getElementById('areaRiskBadge');
+  if(!badge) return;
+
+  if(decision === 'ACTIVATE'){
+    badge.textContent = `CRITICAL EXPOSURE · ${bank} CORRIDORS`;
+    badge.style.background = 'var(--coral-soft)';
+    badge.style.color = 'var(--coral)';
+
+    const multiplier = bank === 'SBI' ? 1.0 : bank === 'HDFC' ? 1.25 : bank === 'ICICI' ? 0.95 : bank === 'AXIS' ? 0.8 : 0.7;
+    const mhTxs = Math.round(3412 * multiplier);
+    const mhVol = (85.2 * multiplier).toFixed(1);
+    const kaTxs = Math.round(2108 * multiplier);
+    const kaVol = (52.7 * multiplier).toFixed(1);
+    const dlTxs = Math.round(1876 * multiplier);
+    const dlVol = (46.9 * multiplier).toFixed(1);
+    const tnTxs = Math.round(1454 * multiplier);
+    const tnVol = (36.3 * multiplier).toFixed(1);
+    const tsTxs = Math.round(1120 * multiplier);
+    const tsVol = (28.0 * multiplier).toFixed(1);
+    const gjTxs = Math.round(980 * multiplier);
+    const gjVol = (24.5 * multiplier).toFixed(1);
+
+    document.getElementById('riskMH').textContent = `${mhTxs.toLocaleString('en-IN')} txs at risk`;
+    document.getElementById('volMH').innerHTML = `&#8377;${mhVol}L volume`;
+    document.getElementById('riskKA').textContent = `${kaTxs.toLocaleString('en-IN')} txs at risk`;
+    document.getElementById('volKA').innerHTML = `&#8377;${kaVol}L volume`;
+    document.getElementById('riskDL').textContent = `${dlTxs.toLocaleString('en-IN')} txs at risk`;
+    document.getElementById('volDL').innerHTML = `&#8377;${dlVol}L volume`;
+    document.getElementById('riskTN').textContent = `${tnTxs.toLocaleString('en-IN')} txs at risk`;
+    document.getElementById('volTN').innerHTML = `&#8377;${tnVol}L volume`;
+
+    const elMHTxs = document.getElementById('tabMHTxs');
+    if(elMHTxs){
+      elMHTxs.textContent = mhTxs.toLocaleString('en-IN');
+      document.getElementById('tabMHVol').innerHTML = `&#8377;${mhVol} Lakhs`;
+      document.getElementById('tabKATxs').textContent = kaTxs.toLocaleString('en-IN');
+      document.getElementById('tabKAVol').innerHTML = `&#8377;${kaVol} Lakhs`;
+      document.getElementById('tabDLTxs').textContent = dlTxs.toLocaleString('en-IN');
+      document.getElementById('tabDLVol').innerHTML = `&#8377;${dlVol} Lakhs`;
+      document.getElementById('tabTNTxs').textContent = tnTxs.toLocaleString('en-IN');
+      document.getElementById('tabTNVol').innerHTML = `&#8377;${tnVol} Lakhs`;
+      document.getElementById('tabTSTxs').textContent = tsTxs.toLocaleString('en-IN');
+      document.getElementById('tabTSVol').innerHTML = `&#8377;${tsVol} Lakhs`;
+      document.getElementById('tabGJTxs').textContent = gjTxs.toLocaleString('en-IN');
+      document.getElementById('tabGJVol').innerHTML = `&#8377;${gjVol} Lakhs`;
+
+      document.getElementById('badgeMH').className = 'status-chip sc-critical';
+      document.getElementById('badgeMH').textContent = 'CRITICAL';
+      document.getElementById('badgeKA').className = 'status-chip sc-critical';
+      document.getElementById('badgeKA').textContent = 'CRITICAL';
+      document.getElementById('badgeDL').className = 'status-chip sc-critical';
+      document.getElementById('badgeDL').textContent = 'CRITICAL';
+    }
+  } else if(decision === 'MONITOR' || decision === 'ESCALATE'){
+    badge.textContent = `ELEVATED · MONITORING ${bank}`;
+    badge.style.background = 'var(--amber-soft)';
+    badge.style.color = 'var(--amber)';
+
+    document.getElementById('riskMH').textContent = `420 txs at risk`;
+    document.getElementById('volMH').innerHTML = `&#8377;10.5L volume`;
+    document.getElementById('riskKA').textContent = `280 txs at risk`;
+    document.getElementById('volKA').innerHTML = `&#8377;7.0L volume`;
+    document.getElementById('riskDL').textContent = `190 txs at risk`;
+    document.getElementById('volDL').innerHTML = `&#8377;4.8L volume`;
+    document.getElementById('riskTN').textContent = `140 txs at risk`;
+    document.getElementById('volTN').innerHTML = `&#8377;3.5L volume`;
+
+    const bMH = document.getElementById('badgeMH');
+    if(bMH){
+      bMH.className = 'status-chip sc-degraded';
+      bMH.textContent = 'ELEVATED';
+      document.getElementById('badgeKA').className = 'status-chip sc-degraded';
+      document.getElementById('badgeKA').textContent = 'ELEVATED';
+      document.getElementById('badgeDL').className = 'status-chip sc-degraded';
+      document.getElementById('badgeDL').textContent = 'ELEVATED';
+    }
+  } else {
+    badge.textContent = `NORMAL · ALL CORRIDORS HEALTHY`;
+    badge.style.background = 'var(--moss-soft)';
+    badge.style.color = 'var(--moss)';
+
+    document.getElementById('riskMH').textContent = `0 txs at risk`;
+    document.getElementById('volMH').innerHTML = `&#8377;0.0L volume`;
+    document.getElementById('riskKA').textContent = `0 txs at risk`;
+    document.getElementById('volKA').innerHTML = `&#8377;0.0L volume`;
+    document.getElementById('riskDL').textContent = `0 txs at risk`;
+    document.getElementById('volDL').innerHTML = `&#8377;0.0L volume`;
+    document.getElementById('riskTN').textContent = `0 txs at risk`;
+    document.getElementById('volTN').innerHTML = `&#8377;0.0L volume`;
+
+    const bMH = document.getElementById('badgeMH');
+    if(bMH){
+      bMH.className = 'status-chip sc-healthy';
+      bMH.textContent = 'NORMAL';
+      document.getElementById('badgeKA').className = 'status-chip sc-healthy';
+      document.getElementById('badgeKA').textContent = 'NORMAL';
+      document.getElementById('badgeDL').className = 'status-chip sc-healthy';
+      document.getElementById('badgeDL').textContent = 'NORMAL';
+    }
+  }
+}
+
 async function playScenario(bank, h1, h2, h3, confidence, liveData=null){
   const btn = document.getElementById('simBtn');
   btn.disabled = true;
@@ -665,6 +895,7 @@ async function playScenario(bank, h1, h2, h3, confidence, liveData=null){
     legBEl.innerHTML = '<span class="pip pip-idle"></span>STANDBY';
     log(`> decision: STANDBY — bank health within normal range`);
   }
+  updateAreaRisk(bank, decision, h3, confidence);
   btn.disabled = false;
 }
 
@@ -725,6 +956,7 @@ async function resetSimulation() {
     document.getElementById('hashBox').style.color = 'var(--navy-muted)';
     document.getElementById('balancedRow').style.color = 'var(--navy-muted)';
     document.getElementById('balancedRow').innerHTML = '— no active bridge yet';
+    updateAreaRisk('SBI', 'STANDBY');
     changeBank('SBI');
   } catch(e) {
     fb.textContent = `Reset error: ${e}`;
