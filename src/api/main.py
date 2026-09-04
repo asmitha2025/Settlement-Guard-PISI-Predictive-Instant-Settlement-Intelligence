@@ -250,6 +250,32 @@ async def simulate_downtime(request: Request):
             timestamp=now.isoformat()
         )
 
+    # For high severity, also inject leading gateway timeouts and settlement delay
+    if severity == "high":
+        for i in range(15):
+            vitality_engine.ingest_error(
+                bank_code=bank_code,
+                error_type="GATEWAY_ERROR",
+                timestamp=now - timedelta(minutes=5),
+                amount=cfg["amount"],
+                error_source="gateway"
+            )
+        vitality_engine.ingest_settlement(
+            bank_code=bank_code,
+            expected_hours=48,
+            actual_hours=84,
+            timestamp=now - timedelta(hours=1)
+        )
+    elif severity == "medium":
+        for i in range(5):
+            vitality_engine.ingest_error(
+                bank_code=bank_code,
+                error_type="GATEWAY_ERROR",
+                timestamp=now - timedelta(minutes=5),
+                amount=cfg["amount"],
+                error_source="gateway"
+            )
+
     # Inject 5 fake captured payments pending settlement on this bank
     for j in range(5):
         tx_id = f"tx_sim_{bank_code.lower()}_{now.strftime('%H%M%S')}_{j:02d}"
