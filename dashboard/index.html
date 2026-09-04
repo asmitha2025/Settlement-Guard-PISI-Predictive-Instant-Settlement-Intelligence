@@ -226,6 +226,9 @@ footer{margin-top:30px;text-align:center;color:var(--text3);font-size:11.5px;fon
 .sim-btn-pass:hover{background:#d1fae5;}
 .sim-btn-reset{background:#f1f5f9;color:#0f172a;border:1px solid #cbd5e1;}
 .sim-btn-reset:hover{background:#e2e8f0;}
+.sim-bank-icon{width:16px;height:16px;object-fit:contain;flex-shrink:0;vertical-align:middle;}
+.sim-bank-icon.round{border-radius:50%;}
+.sim-bank-icon.radius-sm{border-radius:3px;}
 
 .agent-loop-grid{display:flex;align-items:center;justify-content:space-between;gap:8px;overflow-x:auto;}
 .loop-card{flex:1;min-width:170px;background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:12px 14px;transition:all .2s;text-align:left;}
@@ -707,11 +710,11 @@ table.clean-table tr:last-child td{border-bottom:none;}
   <div class="panel" style="border:1px solid var(--line);border-left:4px solid var(--cyan);background:#ffffff;box-shadow:0 4px 16px -2px rgba(15,23,42,0.04);">
     <div class="panel-title" style="color:var(--cyan);font-family:var(--display);">&#9889; Live Simulation Controls &mdash; Trigger Full Agent Loop via Render Backend</div>
     <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
-      <button onclick="simulateDowntime('SBI','high')" class="sim-btn sim-btn-danger">🔴 SBI &mdash; HIGH Downtime</button>
-      <button onclick="simulateDowntime('HDFC','high')" class="sim-btn sim-btn-danger">🔴 HDFC &mdash; HIGH Downtime</button>
-      <button onclick="simulateDowntime('SBI','medium')" class="sim-btn sim-btn-warn">🟡 SBI &mdash; MEDIUM Downtime</button>
-      <button onclick="simulateDowntime('ICICI','medium')" class="sim-btn sim-btn-warn">🟡 ICICI &mdash; MEDIUM Downtime</button>
-      <button onclick="simulateDowntime('PNB','low')" class="sim-btn sim-btn-pass">🟢 PNB &mdash; LOW Downtime</button>
+      <button onclick="simulateDowntime('SBI','high')" class="sim-btn sim-btn-danger"><img src="assets/sbi.png" class="sim-bank-icon round" alt="SBI"> SBI &mdash; HIGH Downtime</button>
+      <button onclick="simulateDowntime('HDFC','high')" class="sim-btn sim-btn-danger"><img src="assets/hdfc.png" class="sim-bank-icon radius-sm" alt="HDFC"> HDFC &mdash; HIGH Downtime</button>
+      <button onclick="simulateDowntime('SBI','medium')" class="sim-btn sim-btn-warn"><img src="assets/sbi.png" class="sim-bank-icon round" alt="SBI"> SBI &mdash; MEDIUM Downtime</button>
+      <button onclick="simulateDowntime('ICICI','medium')" class="sim-btn sim-btn-warn"><img src="assets/icici.jpg" class="sim-bank-icon radius-sm" alt="ICICI"> ICICI &mdash; MEDIUM Downtime</button>
+      <button onclick="simulateDowntime('PNB','low')" class="sim-btn sim-btn-pass"><img src="assets/pnb.png" class="sim-bank-icon radius-sm" alt="PNB"> PNB &mdash; LOW Downtime</button>
       <button onclick="resetSimulation()" class="sim-btn sim-btn-reset">↺ Reset All</button>
     </div>
     <div id="simFeedback" style="margin-top:10px;font-size:12px;font-family:var(--mono);color:var(--text3);min-height:18px;"></div>
