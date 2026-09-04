@@ -1,4 +1,6 @@
-<!DOCTYPE html>
+import os
+
+html_content = '''<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
@@ -2183,3 +2185,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
+'''
+
+with open('dashboard/index.html', 'w', encoding='utf-8') as f:
+    f.write(html_content)
+
+print('Dashboard updated successfully! Bytes:', len(html_content))
+
