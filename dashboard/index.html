@@ -519,11 +519,14 @@ async function sha256Hex(message){
   }
 }
 function log(msg, cls){
+  console.log('[PISI]', msg);
   const el = document.getElementById('simLog');
-  const line = document.createElement('div');
-  line.className = 'line' + (cls ? ' '+cls : '');
-  line.textContent = msg;
-  el.appendChild(line); el.scrollTop = el.scrollHeight;
+  if(el){
+    const line = document.createElement('div');
+    line.className = 'line' + (cls ? ' '+cls : '');
+    line.textContent = msg;
+    el.appendChild(line); el.scrollTop = el.scrollHeight;
+  }
 }
 function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
 
