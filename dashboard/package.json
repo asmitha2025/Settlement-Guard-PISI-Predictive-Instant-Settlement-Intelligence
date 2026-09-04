@@ -1,0 +1,8 @@
+{
+  "name": "pisi-dashboard",
+  "version": "2.5.0",
+  "description": "PISI Settlement Guard — Predictive Instant Settlement Intelligence Dashboard",
+  "type": "module",
+  "author": "asmitha2025",
+  "license": "MIT"
+}
