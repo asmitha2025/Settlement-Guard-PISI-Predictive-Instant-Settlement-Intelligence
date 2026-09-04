@@ -11,6 +11,10 @@ from datetime import datetime
 from typing import List, Optional, Dict, Any
 from pydantic import BaseModel
 from fastapi import FastAPI, HTTPException, Request, Header, BackgroundTasks
+from fastapi.middleware.cors import CORSMiddleware
+from tests.fixtures.synthetic_data import SyntheticDataGenerator
+from scripts.batch_eval import run_batch_evaluation
+from datetime import timedelta
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] PISI: %(message)s")
@@ -34,6 +38,14 @@ app = FastAPI(
     description="Predictive Instant Settlement Intelligence — Track 3: AI Revenue Recovery",
     version="2.5.0"
 )
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 # Instantiate Core System Stack
 error_stream = ErrorStreamIngestor()
@@ -134,6 +146,39 @@ def _process_webhook_event_async(event_type: str, entity_data: dict):
 
 
 # --- API Endpoints ---
+
+@app.get("/api/health/all")
+def get_health_all(): return get_all_banks_vitality()
+
+@app.get("/api/scenario/sbi")
+def run_sbi_scenario():
+    sim_time = datetime(2026, 8, 22, 2, 30, 0)
+    scenario_gen = SyntheticDataGenerator(seed=42)
+    captured_txs = scenario_gen.generate_reconciled_sbi_scenario(count=312, avg_amount=2499.0, start_time=sim_time)
+    for tx in captured_txs:
+        capture_stream.ingest_captured_payment(tx_id=tx['tx_id'], order_id=tx['order_id'], amount=tx['amount'], settlement_path_bank=tx['settlement_path_bank'], merchant_bank=tx['merchant_bank'], merchant_id=tx['merchant_id'], timestamp=tx['captured_at'], method=tx['method'])
+    error_events = scenario_gen.generate_sbi_outage_error_stream(start_time=sim_time)
+    for e in error_events:
+        error_stream.ingest_error_event(bank_code=e['bank_code'], error_type=e['error_type'], timestamp=e['timestamp'], amount=e['amount'], error_source=e['error_source'])
+        vitality_engine.ingest_error(bank_code=e['bank_code'], error_type=e['error_type'], timestamp=e['timestamp'], amount=e['amount'], error_source=e.get('error_source', 'gateway'))
+    vitality_engine.ingest_settlement('SBI', 48, 72, sim_time - timedelta(hours=2))
+    pending = capture_stream.get_pending_captures('SBI')
+    sbi_health = vitality_engine.compute_composite_health('SBI', sim_time)
+    leg_a = pisi_engine.evaluate_leg_a('SBI', pending, sim_time)
+    leg_b = pisi_engine.evaluate_leg_b('SBI', sim_time)
+    created_bridges = []
+    for tx in pending[:5]:
+        b_rec = bridge_system.create_bridge_record(tx, leg_a, vitality_score=sbi_health['composite_health'], confidence=leg_a['confidence'])
+        pisi_engine.activate_bridge_protection(tx, leg_a, b_rec['bridge_id'])
+        executor.execute_instant_settlement(tx, b_rec)
+        capture_stream.mark_protected(tx['tx_id'], 'SBI')
+        created_bridges.append(b_rec)
+    total_volume = sum(t['amount'] for t in captured_txs)
+    return {'bank': 'SBI', 'health_trajectory': [91, 67, round(sbi_health['composite_health'], 1)], 'health': sbi_health, 'leg_a': leg_a, 'leg_b': leg_b, 'total_volume': round(total_volume, 2), 'tx_count': len(captured_txs), 'fee_revenue': round(total_volume * 0.001, 2), 'merchant_savings': round(total_volume * 0.002, 2), 'sample_bridge': created_bridges[0] if created_bridges else None, 'sample_transactions': [{'tx_id': tx['tx_id'], 'amount': tx['amount'], 'method': tx['method'], 'settlement_path_bank': tx['settlement_path_bank'], 'merchant_bank': tx['merchant_bank'], 'captured_at': tx['captured_at'], 'fee': round(tx['amount'] * 0.001, 2)} for tx in captured_txs[:10]]}
+
+@app.get("/api/batch_eval")
+def api_batch_eval(): return run_batch_evaluation(num_incidents=100, seed=42)
+
 
 @app.get("/")
 @app.get("/health")
