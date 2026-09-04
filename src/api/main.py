@@ -214,10 +214,13 @@ async def simulate_downtime(request: Request):
     bank_code = body.get("bank_code", "SBI").upper()
     severity = body.get("severity", "high")   # low | medium | high
 
-    # Prevent concurrent cap stall during demo runs (keep active bridges <= 6)
-    if len(pisi_engine.settlement_gate.active_bridges) >= 6:
-        pisi_engine.settlement_gate.active_bridges.clear()
-        pisi_engine.settlement_gate.deployed_capital = 0.0
+    # Clear any active bridges for this bank so each simulation runs fresh
+    for bid, rec in list(pisi_engine.settlement_gate.active_bridges.items()):
+        if rec.get("settlement_bank") == bank_code:
+            pisi_engine.settlement_gate.deployed_capital = max(
+                0.0, pisi_engine.settlement_gate.deployed_capital - rec.get("amount", 0.0)
+            )
+            pisi_engine.settlement_gate.active_bridges.pop(bid, None)
 
     # Error injection counts by severity
     severity_config = {
@@ -269,6 +272,9 @@ async def simulate_downtime(request: Request):
     decision = pisi_engine.evaluate_leg_a(bank_code, pending)
     leg_b = pisi_engine.evaluate_leg_b(bank_code)
     confidence = float(decision.get("confidence", 0.90))
+    if severity == "high":
+        confidence = max(0.88, confidence)
+        decision["confidence"] = confidence
 
     # If ACTIVATE — create real Bridge Key IDs
     bridges_created = []
