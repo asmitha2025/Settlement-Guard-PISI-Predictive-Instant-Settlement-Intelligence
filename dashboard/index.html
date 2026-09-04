@@ -638,15 +638,15 @@ async function playScenario(bank, h1, h2, h3, confidence){
 }
 
 async function changeBank(bank){
-  log(`> fetching live ML decision from Render backend for ${bank}...`);
+  log(`> fetching live ML decision via Vercel proxy for ${bank}...`);
   try {
-    const res = await fetch(`https://settlement-guard-pisi-predictive-instant.onrender.com/api/health/bank?bank=${bank}`);
+    const res = await fetch(`/api/health/bank?bank=${encodeURIComponent(bank)}`);
     const data = await res.json();
     const h3 = data.health.composite_health;
     const confidence = data.confidence;
     playScenario(bank, 92, (92+h3)/2, h3, confidence);
   } catch(e) {
-    log(`> error connecting to Render backend: ${e}`, 'warn');
+    log(`> proxy fallback: ${e}`, 'warn');
     const h = bankHeatState[bank][5] || 85;
     playScenario(bank, 92, h + 5, h, 0.88);
   }
@@ -704,9 +704,9 @@ window.addEventListener('DOMContentLoaded', () => {
   runSimulator();
   log('> PISI agent online. Monitoring 6 banks: SBI, HDFC, ICICI, AXIS, KOTAK, PNB.');
   setTimeout(async () => {
-    log(`> fetching live ML decision from Render backend...`);
+    log(`> fetching live ML decision via Vercel proxy...`);
     try {
-      const res = await fetch('https://settlement-guard-pisi-predictive-instant.onrender.com/api/scenario/sbi');
+      const res = await fetch('/api/scenario/sbi');
       const data = await res.json();
       const h3 = data.health.composite_health;
       const conf = data.leg_a.confidence;
