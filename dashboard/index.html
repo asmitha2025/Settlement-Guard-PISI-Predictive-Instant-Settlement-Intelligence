@@ -634,9 +634,19 @@ async function playScenario(bank, h1, h2, h3, confidence){
   btn.disabled = false;
 }
 
-function changeBank(bank){
-  const h = bankHeatState[bank][5] || 85;
-  playScenario(bank, 92, h + 5, h, 0.88);
+async function changeBank(bank){
+  log(> fetching live ML decision from Render backend...);
+  try {
+    const res = await fetch(https://settlement-guard-pisi-predictive-instant.onrender.com/api/health/bank?bank=);
+    const data = await res.json();
+    const h3 = data.health.composite_health;
+    const confidence = data.confidence;
+    playScenario(bank, 92, (92+h3)/2, h3, confidence);
+  } catch(e) {
+    log(> error connecting to Render backend: , 'warn');
+    const h = bankHeatState[bank][5] || 85;
+    playScenario(bank, 92, h + 5, h, 0.88);
+  }
 }
 
 function simulateRandomIncident(){
@@ -690,7 +700,18 @@ window.addEventListener('DOMContentLoaded', () => {
   renderHeatmap();
   runSimulator();
   log('> PISI agent online. Monitoring 6 banks: SBI, HDFC, ICICI, AXIS, KOTAK, PNB.');
-  setTimeout(() => { playScenario('SBI', 91, 67, 34, 0.91); }, 2600);
+  setTimeout(async () => {
+    log(> fetching live ML decision from Render backend...);
+    try {
+      const res = await fetch('https://settlement-guard-pisi-predictive-instant.onrender.com/api/scenario/sbi');
+      const data = await res.json();
+      const h3 = data.health.composite_health;
+      const conf = data.leg_a.confidence;
+      playScenario('SBI', 91, 67, h3, conf);
+    } catch(e) {
+      playScenario('SBI', 91, 67, 34, 0.91);
+    }
+  }, 2600);
 });
 </script>
 </body>
