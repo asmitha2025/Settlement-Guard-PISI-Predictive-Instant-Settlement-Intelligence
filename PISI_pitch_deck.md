@@ -1,226 +1,230 @@
 # PISI — Predictive Instant Settlement Intelligence
-### Track 3: AI Revenue Recovery | Razorpay AI Buildathon 2026
+**TRACK 3 • AI REVENUE RECOVERY**
+*Razorpay AI Buildathon 2026*
 
 ---
 
-## SLIDE 1: Title & Executive Overview
-
-# PISI — Predictive Instant Settlement Intelligence
-### Autonomous Post-Capture Revenue Recovery & Instant Settlement Pre-Approval
-
-- **Track Selection:** Track 3 — AI Revenue Recovery
-- **Target Platform:** Razorpay Payment Gateway & Settlement Engine
-- **Core Value Proposition:** Shifting Instant Settlement from reactive merchant request (0.30%–0.50% fee, 15% opt-in) to autonomous predictive pre-approval (0.10% fee, 100% coverage).
-- **Benchmark Performance (`seed=42`):** **100.0% Precision**, **87.5% Recall**, **0.9333 F1 Score**, **₹18.77 Lakhs Protected Volume**, **₹642.95 Net Profit**.
+## Slide 1: Title
+**PISI**
+**Predictive Instant Settlement Intelligence**
+*TRACK 3 • AI REVENUE RECOVERY*
+*Razorpay AI Buildathon 2026*
 
 ---
 
-## SLIDE 2: The $100M+ Settlement Liquidity Problem
+## Slide 2: The Problem (Two Different Failures)
 
-### What Breaks During a Bank Outage?
+### AUTHORIZATION FAILURE
+The payment attempt itself doesn't go through — the customer's bank can't approve the debit.
+Razorpay's own error docs call this "beyond our control" and point to multi-terminal routing — **Smart Routing's job.**
+*Already handled.*
+
+### SETTLEMENT RISK
+The payment already succeeded. What's at risk is the leg that moves funds onward, through a now-degraded bank.
+Not a customer-facing failure — a **merchant cash-flow problem.**
+**Nothing in Razorpay's stack predicts it ahead of time.**
+*This is what PISI builds.*
+
+---
+
+## Slide 3: Razorpay Already Built Both Halves
+
+| **SMART ROUTING** | **INSTANT SETTLEMENT** |
+|---|---|
+| 94.69% Random Forest precision (best of 5 models) | T+0 payout advance using Razorpay's own corporate capital |
+| 4-6% measured lift in production success rate | Published at 0.30% per settlement |
+| ~35M transactions trained on | T = the captured payment date |
+| Operates on the acquiring/gateway side only | Merchant-triggered today |
+| | Only applies to a payment that's already captured |
+
+---
+
+## Slide 4: The Gap — Nothing Connects Prediction to Capital
 
 ```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                          PAYMENT LIFECYCLE                              │
-├───────────────────────────────────┬─────────────────────────────────────┤
-│ 1. PRE-CHECKOUT / AUTHORIZATION   │ 2. POST-CAPTURE / SETTLEMENT        │
-│ (Handled by Smart Routing)        │ (UNPROTECTED OPERATIONAL GAP)       │
-├───────────────────────────────────┼─────────────────────────────────────┤
-│ • NPCI / Bank Gateway Downtime    │ • Payment Succeeded & Captured      │
-│ • Smart Routing reroutes payment  │ • Funds trapped in degraded CBS     │
-│ • Solves authorization failures   │ • Merchant faces T+2 to T+7 delay   │
-└───────────────────────────────────┴─────────────────────────────────────┘
+SMART ROUTING                INSTANT SETTLEMENT              PISI
+predicts which terminal      advances payout,               predictive,
+succeeds                     reactively                     automatic,
+                                                           settlement
+                                                           protection
 ```
 
-- **The Problem:** When a partner settlement bank (e.g., SBI, HDFC) suffers CBS maintenance or nodal delays, captured payments remain trapped.
-- **Current Reactive Model:** Merchants must manually notice the delay and request Instant Settlement at 0.30%–0.50% fee. Only **~15% of merchants opt in**, leaving 85% of at-risk volume exposed to severe liquidity crunches.
+**"Smart Routing already handles gateway-side degradation. Nothing predicts settlement-path risk ahead of time and pre-approves the advance automatically — today a merchant has to notice the delay themselves."**
 
 ---
 
-## SLIDE 3: The Gap — Smart Routing vs. Settlement Protection
+## Slide 5: How It Works — Two Independent Legs
 
-### Bridging the Landmark Research Gap
+### LEG A · SETTLEMENT PROTECTION
+Pre-approves Instant Settlement for already-captured payments, when the settlement-path bank is predicted to degrade.
 
-- **Razorpay's Smart Routing (*Bygari et al., 2021*)**:
-  - Achieved **94.69% precision** and 4–6% production success lift.
-  - *Constraint:* Operates **before authorization** to choose the best gateway path.
-- **The Missing Piece (PISI)**:
-  - Smart Routing cannot touch settlement timing because Instant Settlement applies only to **already-captured payments**.
-  - **PISI bridges gateway telemetry errors to post-capture settlement protection**, detecting bank failure **15–30 minutes before collapse**.
+**MOVES MONEY**
+
+### LEG B · AUTHORIZATION WARNING
+Notifies merchants when a bank is predicted to cause authorization failures. Shortens reaction time.
+
+**INFORMATIONAL ONLY — NEVER CLAIMS TO PREVENT FAILURE**
 
 ---
 
-## SLIDE 4: PISI System Architecture
+## Slide 6: Architecture — Six Layers, Perceive to Learn
 
 ```
-                                  PISI AGENT ARCHITECTURE
-                                  
- ┌───────────────────────────┐         ┌───────────────────────────┐
- │ Payment Capture Stream    │         │ Gateway Telemetry Stream  │
- └─────────────┬─────────────┘         └─────────────┬─────────────┘
-               │                                     │
-               └──────────────────┬──────────────────┘
-                                  ▼
- ┌─────────────────────────────────────────────────────────────────┐
- │               Perception: 5D Bank Vitality Engine               │
- │ • Error Rate (35%)   • Latency Anomaly (25%)  • Auth Rate (20%) │
- │ • Volume Velocity (10%)  • Scheduled Window (10%)               │
- └────────────────────────────────┬────────────────────────────────┘
-                                  │
-                                  ▼
- ┌─────────────────────────────────────────────────────────────────┐
- │             Decision: Two-Leg Autonomous Gate                   │
- │   Rule: IF Health < 50 AND Confidence ≥ 0.70 --> ACTIVATE       │
- └──────────────┬───────────────────────────────────┬──────────────┘
-                │                                   │
-                ▼                                   ▼
- ┌─────────────────────────────┐     ┌─────────────────────────────┐
- │ Leg A: Settlement Protection│     │ Leg B: Auth Early Warning   │
- │ • Deploys Corporate Capital │     │ • Informational Alert       │
- │ • T+0 Credit @ 0.10% Fee    │     │ • Zero Capital Deployed     │
- └──────────────┬──────────────┘     └─────────────────────────────┘
-                │
-                ▼
- ┌─────────────────────────────────────────────────────────────────┐
- │   Execution & Audit: Immutable 64-char SHA-256 BridgeKeyID     │
- │   State Machine: CREATION --> RECEIVABLE --> REPLENISHMENT      │
- └─────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────┐
+│ L1  Data Ingestion    Captured-payment + failed-payment  │
+│                       webhook streams                    │
+├─────────────────────────────────────────────────────────┤
+│ L2  Feature          5-dimension bank vitality           │
+│     Engineering      composite score                     │
+├─────────────────────────────────────────────────────────┤
+│ L3  Prediction       Downtime probability + duration     │
+│     Engine           estimate                            │
+├─────────────────────────────────────────────────────────┤
+│ L4  Decision         Leg A / Leg B gates, capital        │
+│     Engine           ledger, safety caps                 │
+├─────────────────────────────────────────────────────────┤
+│ L5  Execution        Instant Settlement call + Bridge    │
+│                       Key ID audit trail                 │
+├─────────────────────────────────────────────────────────┤
+│ L6  Monitoring &     Precision/recall tracking, drift    │
+│     Feedback         detection, retrain trigger          │
+└─────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## SLIDE 5: Two-Leg Decision Architecture
+## Slide 7: Live System — Not Slides, a Working Console
 
-| Dimension | Leg A: Settlement Protection | Leg B: Authorization Early-Warning |
-|---|---|---|
-| **Primary Trigger** | Bank Health < 50 AND Confidence ≥ 0.70 | Bank Health < 70 AND Confidence ≥ 0.50 |
-| **Capital Impact** | **Deploys Corporate Capital** (Instant Credit) | **Zero Capital Deployed** (Info Only) |
-| **Merchant Benefit** | T+0 Instant Settlement @ 0.10% fee | Early Warning to redirect checkout traffic |
-| **Audit Requirement** | Immutable SHA-256 `BridgeKeyID` & Ledger Sync | Webhook Notification Event Log |
-| **Capital Safety** | Capped at **30% of total portfolio limit** | Unlimited (No liquidity risk) |
-
----
-
-## SLIDE 6: Immutable Double-Entry Ledger & Cryptographic Audit
-
-### SHA-256 BridgeKeyID Schema (§7.3 Output Standard)
-
-$$\text{AuditHash} = \text{SHA256}(\text{bridge\_id} \mid \text{tx\_id} \mid \text{bank} \mid \text{amount} \mid \text{timestamp})$$
-
-```json
-{
-  "bridge_id": "BRIDGE-SBI-20260822024500-1a4ced",
-  "original_transaction_id": "tx_sbi_0001",
-  "settlement_path_bank": "SBI",
-  "merchant_bank": "AXIS",
-  "transaction_amount": 2406.00,
-  "bridge_fee": 2.41,
-  "instant_settlement_amount": 2403.59,
-  "predicted_bank_health": 21.8,
-  "prediction_confidence": 0.91,
-  "status": "ACTIVE",
-  "audit_hash_sha256": "0ef49763c5a16d9f8850e33253ac64c827c06836c60af3c18d0f465246398440"
-}
+**BANK VITALITY — SBI**
+```
+91 → 67 → 34 /100
+        CRITICAL
 ```
 
-- **Double-Entry State Machine:** `CREATION` $\rightarrow$ `RECEIVABLE` $\rightarrow$ `REPLENISHMENT` $\rightarrow$ `FEE_REVENUE`.
-- **T+2 Auto-Reconciliation:** When standard settlement arrives from the bank, the bridge automatically closes and replenishes corporate capital.
+**DECISION ENGINE**
+- LEG A: **ACTIVATE**
+- LEG B: WARN (informational)
 
----
-
-## SLIDE 7: Benchmark Performance Metrics (`seed=42`)
-
-Ran `python scripts/batch_eval.py` over **100 synthetic incidents**:
-
+**BRIDGE KEY ID — SAMPLE AUDIT RECORD**
 ```
- ┌─────────────────────────────────────────────────────────────────┐
- │                   CONFUSION MATRIX (100 Incidents)              │
- ├────────────────────────────────┬────────────────────────────────┤
- │ True Positives (TP): 14        │ False Positives (FP): 0        │
- │ (Correctly Protected)          │ (Zero Wasted Capital)          │
- ├────────────────────────────────┼────────────────────────────────┤
- │ False Negatives (FN): 2        │ True Negatives (TN): 84        │
- │ (Held Back by 0.70 Floor)      │ (Correctly Standby)            │
- └────────────────────────────────┴────────────────────────────────┘
+BRIDGE-SBI-20260823T133603-mo_000
+- Rs 3,641.63
+- Rs 3,637.99 settled
+SHA-256: 944c25f386d8358b22f4f7734c67b12e55516bd2392ef54642803b93903a398
+Books balanced — verified byte-for-byte against Python's hashlib.sha256
 ```
 
-- **Precision:** **100.0%** ($\frac{14}{14+0}$) — Zero corporate capital wasted on false alarms.
-- **Recall:** **87.5%** ($\frac{14}{14+2}$) — 14 out of 16 genuine outages successfully protected.
-- **F1 Score:** **0.9333** — Highest precision-recall balance.
+---
+
+## Slide 8: Measured Results (1,000 Independent Incidents)
+
+| Metric | Value |
+|--------|-------|
+| True Positives | **119** |
+| False Negatives | **49** |
+| False Positives | **0** |
+| True Negatives | **832** |
+
+**100% PRECISION**
+**70.8% RECALL (N=1000, STABLE)**
+
+### READING THE FALSE NEGATIVES HONESTLY
+- **43 of 49** — confidence stayed below the 70% activation floor on a genuine risk incident. The engine correctly held back rather than act on an uncertain signal.
+- **6 of 49** — happen only after incident #965 of 1000, once cumulative deployment approaches the 30% capital cap. The safety gate is a real constraint, not decorative.
 
 ---
 
-## SLIDE 8: Financial Reconciliation & Revenue Model
+## Slide 9: A Real Trained Classifier, on Harder Data
 
-### Measured Unit Economics (100 Benchmark Incidents)
+The batch above uses a rule-based scorer on cleanly-separable data — that's why precision was 100%. This trains a real model on a harder dataset where risk is genuinely noisy, and compares it to the naive rule anyone would hand-write.
 
-| Financial Metric | Benchmark Value (₹) | Formula / Derivation |
-|---|---|---|
-| **Total Protected Volume** | **₹18,77,407.69** | Sum of volume across 14 True Positives |
-| **Razorpay Fee Revenue (0.10%)** | **₹1,877.41** | $0.10\% \times \text{Protected Volume}$ |
-| **Capital Cost (2-day float @ 12%)** | **₹1,234.46** | $\text{Volume} \times \left(\frac{0.12}{365}\right) \times 2$ |
-| **Net Fee Profit** | **₹642.95** | $\text{Fee Revenue} - \text{Capital Cost}$ |
-| **Merchant Fee Savings** | **₹3,754.82** | $(0.30\% - 0.10\%) \times \text{Protected Volume}$ |
-| **Missed Exposure (2 FNs)** | **₹4,43,706.19** | Sum of volume across 2 False Negatives |
+| | Precision | Recall | F1 |
+|---|---|---|---|
+| **Naive Rule** | 27.9% | 50.2% | 0.359 |
+| **XGBoost** | **38.4%** | **54.5%** | **0.450** |
 
----
-
-## SLIDE 9: Transparent Exception & Failure Analysis
-
-### Documented Exception List (Zero Cherry-Picking)
-
-| Incident | Bank | Confidence | Decision | Exposure (₹) | Root Cause Analysis |
-|---|---|---|---|---|---|
-| **INC-039** | HDFC | 64.59% | STANDBY | ₹2,44,038.40 | Confidence fell below 0.70 floor |
-| **INC-069** | AXIS | 59.55% | STANDBY | ₹1,99,667.79 | Confidence fell below 0.70 floor |
-
-- **Trade-off Rationale:** Both missed incidents had genuine settlement risk, but PISI held back because confidence was below the **0.70 activation floor**.
-- **Deliberate Design Decision:** Protecting ₹4.44L in missed exposure is the intentional trade-off required to **guarantee 100% precision and zero false positives**.
+- Beats the naive rule on **both metrics at once**, on a held-out test set it never trained on.
+- 3 planted noise features correctly rank last in feature importance (avg rank 8.0 of 10) — evidence it learned signal, not spurious correlation.
+- **Finding along the way:** at the old 0.70 threshold, every trained model's recall collapsed near zero. Fixed by choosing each model's own threshold on validation data (0.225), not reusing one calibrated for a different, easier dataset.
 
 ---
 
-## SLIDE 10: Real-Time Console Dashboard & UI
+## Slide 10: Found, Measured, and Fixed — Not Just Identified
 
-- **Frontend Console:** [dashboard/index.html](file:///c:/Users/harih/OneDrive/Documents/PISI/dashboard/index.html)
-- **Live Python Server:** [dashboard/server.py](file:///c:/Users/harih/OneDrive/Documents/PISI/dashboard/server.py) (`http://localhost:8080`)
-- **Key Console Capabilities:**
-  1. **Fritsch-Carlson Monotone Spline Curve:** Silky smooth SVG trajectory graph showing real-time 91 $\rightarrow$ 67 $\rightarrow$ 34 HP bank health transitions.
-  2. **5D Vitality Breakdown:** Visual progress indicators for Error Rate, Latency, Auth Rate, and Volume Velocity.
-  3. **Live Bridge Ticker:** Streaming event log showing incoming webhooks, instant credit executions, and SHA-256 audit hashes.
-  4. **Interactive Simulator:** Real-time threshold slider testing directly executing `pisi_engine.py`.
+### CAPITAL ALLOCATION
+6 of 49 misses happened only because the 30% cap ran out near the end of a busy batch — not a confidence problem, an **ordering problem**.
+**Fix:** smallest-transaction-first, plus a per-incident reserve cap.
+**100% of capital-exhaustion misses rescued across 5 seeds · 0 new false positives**
+
+### LEARNING LOOP
+Load the deployed model → simulate drift after deployment → retrain on accumulated data → verify on a third, untouched batch.
+The only fair test: does retraining actually help, or just memorize the drift sample?
+
+**0.413 → 0.454 F1**
+*improved in 5 of 5 seed pairs tested*
 
 ---
 
-## SLIDE 11: Production Integration & Roadmap
+## Slide 11: Small, Honest, Reproducible
 
-### 3-Step Production Rollout Plan
+| ₹1.50 Cr | ₹14,999.90 | ₹5,136.95 | ₹29,999.80 |
+|----------|------------|-----------|------------|
+| PROTECTED | FEE REVENUE | NET FEE | MERCHANT SAVINGS |
+| VOLUME | @ 0.10% | PROFIT | VS 0.30% REACTIVE |
+
+*Every figure above is the literal stdout of `python scripts/batch_eval.py` — seed=42, n=1000. Rerun it and get the identical numbers.*
+
+**This isn't a new prediction model — Razorpay's is better than anything built in two weeks. It's a product gap: turning a settlement product from reactive to predictive.**
+
+---
+
+## Slide 12: Production-Ready & Deployed
+
+### LIVE FULL-STACK SYSTEM
+- **Interactive Console (Vercel):** https://pisi-eosin.vercel.app
+- **Decision Engine (Render):** https://settlement-guard-pisi-predictive-instant.onrender.com
+- **Live Agent Loop:** One-click "Simulate Downtime" button triggers real-time perception → XGBoost inference → capital escalation → instant settlement.
+- **Webhook Ingestion:** 6 Razorpay event types supported with synchronous HMAC-SHA256 verification (<5ms).
+
+### SECURITY & CAPITAL SAFEGUARDS
+- Tamper-evident SHA-256 hash audit trail (byte-for-byte verified with Web Crypto & Python hashlib)
+- Double-entry protection ledger (debits = credits)
+- 3-tier escalation matrix (HIGH / MEDIUM / LOW)
+- Hard stopping rules: 30% portfolio cap, 10 concurrent bridges, ₹50K per-tx limit
+
+---
+
+## Slide 13: What We've Built Beyond the Original Scope
+
+| Feature | Impact |
+|---------|--------|
+| **Real Razorpay API Integration** | Executes on-demand settlements with paise conversion |
+| **Live Webhook Receiver** | Ingests real payment events, verifies HMAC signatures |
+| **Trained XGBoost Model** | F1 = 0.6965 on core benchmark (and 0.450 on adversarial stress-test, Slide 9) |
+| **Isolation Forest** | Catches novel out-of-distribution bank failures |
+| **Learning Loop** | Auto-retrains on drift, validated across 5 seeds |
+| **Resilient Fallback** | Rule-based scorer catches failures gracefully |
+| **FastAPI Production Server** | Deployed on Render, response < 5ms |
+
+---
+
+## Slide 14: Closing
 
 ```
- ┌──────────────────────┐     ┌──────────────────────┐     ┌──────────────────────┐
- │ STEP 1: Telemetry    │     │ STEP 2: Shadow Mode  │     │ STEP 3: Full Launch  │
- │ Kafka Stream Sync    │ ──> │ Leg B Alerts Only    │ ──> │ Leg A Autonomous     │
- │ Ingest production    │     │ Validate live bank   │     │ Pre-approval @ 0.10% │
- │ error & CBS logs     │     │ classifier predictions│    │ fee rate             │
- └──────────────────────┘     └──────────────────────┘     └──────────────────────┘
+Smart Routing optimizes the path.
+PISI optimizes the safety net.
 ```
 
-1. **Phase 1 (Kafka Sync):** Connect `ErrorStreamIngestor` to Razorpay's production Kafka gateway error topics.
-2. **Phase 2 (Shadow Deployment):** Run Leg B early-warning alerts in shadow mode to validate real-world bank downtime lead times.
-3. **Phase 3 (Live Pre-Approval):** Enable Leg A autonomous instant settlement pre-approvals under the 30% portfolio capital limit.
+**PISI — Predictive Instant Settlement Intelligence**
+
+*One question: What if the merchant never had to ask?*
 
 ---
 
-## SLIDE 12: Summary — Why PISI Wins Track 3
+## Slide 15: Links & Resources
 
-1. **Proactive, Not Reactive:** Moves instant settlement coverage from ~15% to 100% of at-risk captured payments.
-2. **Proven Financial Viability:** 100% Precision, ₹18.77L volume protected, generating ₹642.95 net profit and saving merchants ₹3,754 in fee costs.
-3. **Audit-Grade Compliance:** Immutable SHA-256 `BridgeKeyID` cryptographic logging with strict double-entry ledger reconciliation.
-4. **Working End-to-End Codebase:** Production-grade Python stack with backend server, unit test suite, and interactive HTML console.
+- **Interactive Live Dashboard:** https://pisi-eosin.vercel.app
+- **Production REST API / Health:** https://settlement-guard-pisi-predictive-instant.onrender.com/health
+- **GitHub Repository:** https://github.com/asmitha2025/Settlement-Guard-PISI-Predictive-Instant-Settlement-Intelligence
 
----
-
-### Contact & Code Repository
-- **GitHub Repository:** `https://github.com/your-username/pisi-razorpay-track3`
-- **Dashboard Server:** `python dashboard/server.py` (`http://localhost:8080`)
-- **Batch Evaluation:** `python scripts/batch_eval.py`
-- **Demo Scenario:** `python scripts/demo_scenario.py`
+*Built for Razorpay AI Buildathon 2026 — Track 3: AI Revenue Recovery*
