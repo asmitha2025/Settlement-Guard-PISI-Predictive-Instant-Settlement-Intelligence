@@ -158,9 +158,15 @@ python scripts/test_razorpay_integration.py
 
 ---
 
+## 👩‍💻 Contributors
+
+- **Asmitha M** ([@asmitha2025](https://github.com/asmitha2025)) — Core Architecture, ML Model Training, Decision Engine & Instant Settlement Integration
+
+---
+
 ## 📄 License
 
-MIT © 2026 — Built for the Razorpay AI Buildathon.
+MIT © 2026 Asmitha M — Built for the Razorpay AI Buildathon.
 
 ---
 
