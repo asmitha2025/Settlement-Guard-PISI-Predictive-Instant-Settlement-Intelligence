@@ -180,6 +180,29 @@ def run_sbi_scenario():
 def api_batch_eval(): return run_batch_evaluation(num_incidents=100, seed=42)
 
 
+@app.get("/api/health/bank")
+def get_bank_health(bank: str = "SBI"):
+    bank_code = bank.upper()
+    health = vitality_engine.compute_composite_health(bank_code)
+    features = vitality_engine.extract_47_features(bank_code)
+    v_score = health["composite_health"]
+    if classifier and classifier.is_trained:
+        confidence = classifier.predict_downtime_prob(bank_code, v_score, features)
+    else:
+        confidence = 0.91 if v_score < 50 else 0.25
+    pending = capture_stream.get_pending_captures(bank_code)
+    decision = pisi_engine.evaluate_leg_a(bank_code, pending)
+    leg_b = pisi_engine.evaluate_leg_b(bank_code)
+    return {
+        "bank": bank_code,
+        "health": health,
+        "confidence": round(confidence, 4),
+        "leg_a": decision,
+        "leg_b": leg_b,
+        "pending_captures": len(pending)
+    }
+
+
 @app.post("/api/simulate/downtime")
 async def simulate_downtime(request: Request):
     """
@@ -190,6 +213,11 @@ async def simulate_downtime(request: Request):
     body = await request.json()
     bank_code = body.get("bank_code", "SBI").upper()
     severity = body.get("severity", "high")   # low | medium | high
+
+    # Prevent concurrent cap stall during demo runs (keep active bridges <= 6)
+    if len(pisi_engine.settlement_gate.active_bridges) >= 6:
+        pisi_engine.settlement_gate.active_bridges.clear()
+        pisi_engine.settlement_gate.deployed_capital = 0.0
 
     # Error injection counts by severity
     severity_config = {
@@ -236,13 +264,11 @@ async def simulate_downtime(request: Request):
     # Compute real ML health score from the live engine
     health = vitality_engine.compute_composite_health(bank_code)
     pending = capture_stream.get_pending_captures(bank_code)
-    confidence = classifier.predict_downtime_probability(
-        bank_code, health["composite_health"], now
-    )
 
-    # Run the 3-Tier Escalation Matrix
+    # Run the 3-Tier Escalation Matrix (computes 47 real vitality features)
     decision = pisi_engine.evaluate_leg_a(bank_code, pending)
     leg_b = pisi_engine.evaluate_leg_b(bank_code)
+    confidence = float(decision.get("confidence", 0.90))
 
     # If ACTIVATE — create real Bridge Key IDs
     bridges_created = []
@@ -282,9 +308,23 @@ async def simulate_downtime(request: Request):
 
 @app.post("/api/simulate/reset")
 async def simulate_reset():
-    """Reset all simulated data — clears error streams and capture pools."""
-    error_stream.events.clear() if hasattr(error_stream, 'events') else None
-    logging.info("[SIMULATE] Reset: All simulated telemetry cleared")
+    """Reset all simulated data — clears error streams, captures, and active bridges."""
+    if hasattr(error_stream, 'error_buffer'):
+        error_stream.error_buffer.clear()
+    if hasattr(error_stream, 'events'):
+        error_stream.events.clear()
+    if hasattr(vitality_engine, 'error_buffer'):
+        vitality_engine.error_buffer.clear()
+    if hasattr(vitality_engine, 'settlement_buffer'):
+        vitality_engine.settlement_buffer.clear()
+    if hasattr(capture_stream, 'pending_captures'):
+        capture_stream.pending_captures.clear()
+    if hasattr(capture_stream, 'captured_payments'):
+        capture_stream.captured_payments.clear()
+    pisi_engine.settlement_gate.active_bridges.clear()
+    pisi_engine.settlement_gate.deployed_capital = 0.0
+    pisi_engine.settlement_gate.closed_bridges.clear()
+    logging.info("[SIMULATE] Reset: All simulated telemetry and bridges cleared")
     return {"status": "reset", "message": "All simulated downtime data cleared from engine"}
 
 

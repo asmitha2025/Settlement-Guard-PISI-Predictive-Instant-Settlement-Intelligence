@@ -567,7 +567,7 @@ function renderHeatmap(){
   grid.innerHTML = html;
 }
 
-async function playScenario(bank, h1, h2, h3, confidence){
+async function playScenario(bank, h1, h2, h3, confidence, liveData=null){
   const btn = document.getElementById('simBtn');
   btn.disabled = true;
   document.getElementById('simLog').innerHTML = '';
@@ -576,23 +576,30 @@ async function playScenario(bank, h1, h2, h3, confidence){
   document.getElementById('bankName').textContent = bank;
   document.getElementById('bankSelect').value = bank;
   log(`> ingesting webhook stream for ${bank}...`);
-  await sleep(350);
+  await sleep(250);
 
   updateSpark(h1,h2,h3);
   document.getElementById('healthVal').innerHTML = h3.toFixed(0);
   document.getElementById('confVal').textContent = `${(confidence*100).toFixed(0)}%`;
   log(`> bank_vitality composite score: ${h3.toFixed(1)}/100`);
-  await sleep(300);
+  await sleep(200);
   log(`> downtime_classifier confidence: ${(confidence*100).toFixed(1)}%`);
-  await sleep(300);
+  await sleep(200);
 
   bankHeatState[bank] = [...bankHeatState[bank].slice(1), h3];
   renderHeatmap();
 
   let decision, statusClass, statusLabel, color;
-  if(h3 < 50 && confidence >= 0.70){ decision='ACTIVATE'; statusClass='sc-critical'; statusLabel='CRITICAL'; color='var(--coral)'; }
-  else if(h3 < 70 && confidence >= 0.50){ decision='MONITOR'; statusClass='sc-degraded'; statusLabel='DEGRADED'; color='var(--amber)'; }
-  else { decision='STANDBY'; statusClass='sc-healthy'; statusLabel='HEALTHY'; color='var(--moss)'; }
+  if(liveData && liveData.leg_a && liveData.leg_a.decision){
+    decision = liveData.leg_a.decision;
+    if(decision === 'ACTIVATE'){ statusClass='sc-critical'; statusLabel='CRITICAL'; color='var(--coral)'; }
+    else if(decision === 'MONITOR' || decision === 'ESCALATE'){ statusClass='sc-degraded'; statusLabel='DEGRADED'; color='var(--amber)'; }
+    else { statusClass='sc-healthy'; statusLabel='HEALTHY'; color='var(--moss)'; }
+  } else {
+    if(h3 < 50 && confidence >= 0.70){ decision='ACTIVATE'; statusClass='sc-critical'; statusLabel='CRITICAL'; color='var(--coral)'; }
+    else if(h3 < 70 && confidence >= 0.50){ decision='MONITOR'; statusClass='sc-degraded'; statusLabel='DEGRADED'; color='var(--amber)'; }
+    else { decision='STANDBY'; statusClass='sc-healthy'; statusLabel='HEALTHY'; color='var(--moss)'; }
+  }
 
   document.getElementById('healthVal').style.color = color;
   document.getElementById('healthStatus').className = 'status-chip ' + statusClass;
@@ -605,22 +612,32 @@ async function playScenario(bank, h1, h2, h3, confidence){
     legAEl.innerHTML = '<span class="pip pip-activate"></span>ACTIVATE';
     legBEl.innerHTML = '<span class="pip pip-warn"></span>WARN';
     log(`> decision: ACTIVATE (health<50 and confidence>=70%)`, 'good');
-    await sleep(300);
+    await sleep(200);
 
-    const txId = 'tx_sim_' + Math.random().toString(36).slice(2,8);
-    const amount = Math.round((800 + Math.random()*8000) * 100)/100;
-    const fee = Math.round(amount * 0.0010 * 100)/100;
-    const settled = Math.round((amount-fee)*100)/100;
-    const ts = new Date().toISOString();
-    const bridgeId = `BRIDGE-${bank}-${ts.replace(/[:\-]/g,'').split('.')[0]}-${txId.slice(-6)}`;
+    let bridgeId, amount, fee, settled, hash;
+    if(liveData && liveData.bridges && liveData.bridges.length > 0){
+      const b = liveData.bridges[0];
+      bridgeId = b.bridge_id;
+      amount = b.amount;
+      fee = Math.round(amount * 0.0010 * 100) / 100;
+      settled = Math.round((amount - fee) * 100) / 100;
+      hash = b.audit_hash;
+    } else {
+      const txId = 'tx_sim_' + Math.random().toString(36).slice(2,8);
+      amount = Math.round((800 + Math.random()*8000) * 100)/100;
+      fee = Math.round(amount * 0.0010 * 100)/100;
+      settled = Math.round((amount-fee)*100)/100;
+      const ts = new Date().toISOString();
+      bridgeId = `BRIDGE-${bank}-${ts.replace(/[:\-]/g,'').split('.')[0]}-${txId.slice(-6)}`;
+      hash = await sha256Hex(`${bridgeId}|${txId}|${bank}|${amount.toFixed(2)}|${ts}`);
+    }
 
     log(`> creating bridge ${bridgeId}`);
-    await sleep(200);
-    const hash = await sha256Hex(`${bridgeId}|${txId}|${bank}|${amount.toFixed(2)}|${ts}`);
+    await sleep(150);
     document.getElementById('hashBox').textContent = hash;
     document.getElementById('hashBox').style.color = '#7FD9B8';
     log(`> hash: ${hash.slice(0,24)}...`, 'good');
-    await sleep(200);
+    await sleep(150);
 
     document.getElementById('bridgeId').textContent = bridgeId;
     document.getElementById('bridgeAmt').textContent = fmtINR(amount);
@@ -639,10 +656,10 @@ async function playScenario(bank, h1, h2, h3, confidence){
     document.getElementById('balancedRow').style.color = 'var(--moss)';
     document.getElementById('balancedRow').innerHTML = '✓ Books balanced — debits = credits';
     log(`> books balanced: true`, 'good');
-  } else if(decision === 'MONITOR'){
+  } else if(decision === 'MONITOR' || decision === 'ESCALATE'){
     legAEl.innerHTML = '<span class="pip pip-warn"></span>MONITOR';
     legBEl.innerHTML = '<span class="pip pip-warn"></span>WARN';
-    log(`> decision: MONITOR — confidence below 70% activation floor`, 'warn');
+    log(`> decision: MONITOR — early warning active, monitoring standard pipeline`, 'warn');
   } else {
     legAEl.innerHTML = '<span class="pip pip-idle"></span>STANDBY';
     legBEl.innerHTML = '<span class="pip pip-idle"></span>STANDBY';
@@ -675,7 +692,7 @@ async function simulateDowntime(bank, severity) {
     fb.style.color = data.leg_a.decision === 'ACTIVATE' ? 'var(--moss)' : 'var(--amber)';
     // Update the main display
     document.getElementById('bankSelect').value = bank;
-    playScenario(bank, 92, (92+h3)/2, h3, conf);
+    playScenario(bank, 92, (92+h3)/2, h3, conf, data);
   } catch(e) {
     fb.textContent = `> Error: ${e} — check Render is awake`;
     fb.style.color = 'var(--coral)';
@@ -693,6 +710,22 @@ async function resetSimulation() {
     fb.textContent = `✓ Reset complete — all simulated telemetry cleared from engine`;
     fb.style.color = 'var(--navy-muted)';
     log(`> [LIVE] Render engine reset — all simulated data cleared`);
+    ledgerCount = 0; ledgerVolume = 0; ledgerFee = 0; capUsed = 0;
+    document.getElementById('ledgerCount').textContent = '0';
+    document.getElementById('ledgerVolume').textContent = '₹0';
+    document.getElementById('ledgerFee').textContent = '₹0.00';
+    document.getElementById('ledgerAvail').textContent = '₹1.50Cr';
+    document.getElementById('capFill').style.width = '0%';
+    document.getElementById('capPct').textContent = '0.0% of cap used';
+    document.getElementById('bridgeId').textContent = '—';
+    document.getElementById('bridgeAmt').textContent = '—';
+    document.getElementById('bridgeFee').textContent = '—';
+    document.getElementById('bridgeSettled').textContent = '—';
+    document.getElementById('hashBox').textContent = 'awaiting first ACTIVATE decision…';
+    document.getElementById('hashBox').style.color = 'var(--navy-muted)';
+    document.getElementById('balancedRow').style.color = 'var(--navy-muted)';
+    document.getElementById('balancedRow').innerHTML = '— no active bridge yet';
+    changeBank('SBI');
   } catch(e) {
     fb.textContent = `Reset error: ${e}`;
   }
@@ -705,7 +738,7 @@ async function changeBank(bank){
     const data = await res.json();
     const h3 = data.health.composite_health;
     const confidence = data.confidence;
-    playScenario(bank, 92, (92+h3)/2, h3, confidence);
+    playScenario(bank, 92, (92+h3)/2, h3, confidence, data);
   } catch(e) {
     log(`> proxy fallback: ${e}`, 'warn');
     const h = bankHeatState[bank][5] || 85;
