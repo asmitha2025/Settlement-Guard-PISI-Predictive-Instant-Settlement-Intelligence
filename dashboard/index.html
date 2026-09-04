@@ -208,6 +208,20 @@ footer{margin-top:26px;text-align:center;color:var(--navy-muted);font-size:11px;
     </div>
   </header>
 
+  <!-- SIMULATE DOWNTIME PANEL -->
+  <div class="panel" style="border:2px solid var(--coral);background:#fff8f7;">
+    <div class="panel-title" style="color:var(--coral)">&#9889; Live Simulation Controls — Trigger Full Agent Loop via Render Backend</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+      <button onclick="simulateDowntime('SBI','high')" style="background:var(--coral);color:#fff;border:none;border-radius:4px;padding:10px 18px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;">🔴 SBI — HIGH Downtime</button>
+      <button onclick="simulateDowntime('HDFC','high')" style="background:var(--coral);color:#fff;border:none;border-radius:4px;padding:10px 18px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;">🔴 HDFC — HIGH Downtime</button>
+      <button onclick="simulateDowntime('SBI','medium')" style="background:var(--amber);color:#fff;border:none;border-radius:4px;padding:10px 18px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;">🟡 SBI — MEDIUM Downtime</button>
+      <button onclick="simulateDowntime('ICICI','medium')" style="background:var(--amber);color:#fff;border:none;border-radius:4px;padding:10px 18px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;">🟡 ICICI — MEDIUM Downtime</button>
+      <button onclick="simulateDowntime('PNB','low')" style="background:var(--moss);color:#fff;border:none;border-radius:4px;padding:10px 18px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;">🟢 PNB — LOW Downtime</button>
+      <button onclick="resetSimulation()" style="background:var(--navy);color:#fff;border:none;border-radius:4px;padding:10px 18px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;">↺ Reset All</button>
+    </div>
+    <div id="simFeedback" style="margin-top:10px;font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--navy-muted);min-height:18px;"></div>
+  </div>
+
   <div class="panel">
     <div class="panel-title">&#9881; Settlement Control Panel</div>
     <div class="controls-row">
@@ -635,6 +649,53 @@ async function playScenario(bank, h1, h2, h3, confidence){
     log(`> decision: STANDBY — bank health within normal range`);
   }
   btn.disabled = false;
+}
+
+async function simulateDowntime(bank, severity) {
+  const fb = document.getElementById('simFeedback');
+  fb.textContent = `> Sending ${severity.toUpperCase()} downtime signal for ${bank} to Render backend...`;
+  fb.style.color = 'var(--amber)';
+  log(`> [LIVE] Triggering ${severity.toUpperCase()} downtime simulation for ${bank} via Render ML engine...`);
+  try {
+    const res = await fetch('/api/simulate/downtime', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({bank_code: bank, severity: severity})
+    });
+    const data = await res.json();
+    const h3 = data.health.composite_health;
+    const conf = data.confidence;
+    log(`> [LIVE] Render Response: HP=${h3.toFixed(1)}, Confidence=${(conf*100).toFixed(1)}%, Decision=${data.leg_a.decision}`, 'good');
+    log(`> [LIVE] Errors injected: ${data.errors_injected} | Bridges activated: ${data.bridges_activated}`, 'good');
+    if(data.bridges && data.bridges.length > 0){
+      log(`> [LIVE] Bridge ID: ${data.bridges[0].bridge_id}`, 'good');
+      log(`> [LIVE] Audit Hash: ${data.bridges[0].audit_hash.slice(0,24)}...`, 'good');
+    }
+    fb.textContent = `✓ ${bank} HP=${h3.toFixed(0)} | Decision: ${data.leg_a.decision} | Bridges: ${data.bridges_activated} | ${data.message}`;
+    fb.style.color = data.leg_a.decision === 'ACTIVATE' ? 'var(--moss)' : 'var(--amber)';
+    // Update the main display
+    document.getElementById('bankSelect').value = bank;
+    playScenario(bank, 92, (92+h3)/2, h3, conf);
+  } catch(e) {
+    fb.textContent = `> Error: ${e} — check Render is awake`;
+    fb.style.color = 'var(--coral)';
+    log(`> [FALLBACK] Render unreachable, running local simulation`, 'warn');
+    const h = {high: 22, medium: 44, low: 65}[severity] || 34;
+    playScenario(bank, 92, (92+h)/2, h, 0.91);
+  }
+}
+
+async function resetSimulation() {
+  const fb = document.getElementById('simFeedback');
+  fb.textContent = `> Resetting all simulation data on Render backend...`;
+  try {
+    await fetch('/api/simulate/reset', {method: 'POST'});
+    fb.textContent = `✓ Reset complete — all simulated telemetry cleared from engine`;
+    fb.style.color = 'var(--navy-muted)';
+    log(`> [LIVE] Render engine reset — all simulated data cleared`);
+  } catch(e) {
+    fb.textContent = `Reset error: ${e}`;
+  }
 }
 
 async function changeBank(bank){

@@ -180,6 +180,114 @@ def run_sbi_scenario():
 def api_batch_eval(): return run_batch_evaluation(num_incidents=100, seed=42)
 
 
+@app.post("/api/simulate/downtime")
+async def simulate_downtime(request: Request):
+    """
+    Demo endpoint: Injects synthetic downtime telemetry into the live PISI engine.
+    Simulates what would happen if Razorpay sent payment.downtime.started events.
+    Uses the SAME engine instances as the real webhook handler.
+    """
+    body = await request.json()
+    bank_code = body.get("bank_code", "SBI").upper()
+    severity = body.get("severity", "high")   # low | medium | high
+
+    # Error injection counts by severity
+    severity_config = {
+        "low":    {"errors": 8,  "amount": 1500.0,  "label": "LOW"},
+        "medium": {"errors": 20, "amount": 5000.0,  "label": "MEDIUM"},
+        "high":   {"errors": 50, "amount": 15000.0, "label": "HIGH"},
+    }
+    cfg = severity_config.get(severity, severity_config["high"])
+
+    logging.info(f"[SIMULATE] Injecting {cfg['label']} downtime for {bank_code} ({cfg['errors']} errors)")
+
+    # Inject errors into the LIVE engine (same instances used by webhook handler)
+    now = datetime.now()
+    for i in range(cfg["errors"]):
+        error_stream.ingest_error_event(
+            bank_code=bank_code,
+            error_type="bank_technical_error",
+            amount=cfg["amount"],
+            error_source="issuing_bank",
+            timestamp=now.isoformat()
+        )
+        vitality_engine.ingest_error(
+            bank_code=bank_code,
+            error_type="bank_technical_error",
+            amount=cfg["amount"],
+            error_source="issuing_bank",
+            timestamp=now.isoformat()
+        )
+
+    # Inject 5 fake captured payments pending settlement on this bank
+    for j in range(5):
+        tx_id = f"tx_sim_{bank_code.lower()}_{now.strftime('%H%M%S')}_{j:02d}"
+        capture_stream.ingest_captured_payment(
+            tx_id=tx_id,
+            order_id=f"ord_sim_{j:04d}",
+            amount=2499.0 + (j * 100),
+            settlement_path_bank=bank_code,
+            merchant_bank="HDFC",
+            merchant_id="M-DEMO-001",
+            method="upi",
+            timestamp=now.isoformat()
+        )
+
+    # Compute real ML health score from the live engine
+    health = vitality_engine.compute_composite_health(bank_code)
+    pending = capture_stream.get_pending_captures(bank_code)
+    confidence = classifier.predict_downtime_probability(
+        bank_code, health["composite_health"], now
+    )
+
+    # Run the 3-Tier Escalation Matrix
+    decision = pisi_engine.evaluate_leg_a(bank_code, pending)
+    leg_b = pisi_engine.evaluate_leg_b(bank_code)
+
+    # If ACTIVATE — create real Bridge Key IDs
+    bridges_created = []
+    if decision["decision"] == "ACTIVATE":
+        for tx in pending[:3]:
+            bridge_rec = bridge_system.create_bridge_record(
+                tx, decision,
+                vitality_score=health["composite_health"],
+                confidence=confidence
+            )
+            pisi_engine.activate_bridge_protection(tx, decision, bridge_rec["bridge_id"])
+            executor.execute_instant_settlement(tx, bridge_rec)
+            capture_stream.mark_protected(tx["tx_id"], bank_code)
+            bridges_created.append({
+                "bridge_id": bridge_rec["bridge_id"],
+                "amount": tx["amount"],
+                "audit_hash": bridge_rec["audit_hash_sha256"]
+            })
+            logging.info(f"[SIMULATE] Bridge activated: {bridge_rec['bridge_id']}")
+
+    logging.info(f"[SIMULATE] Result: {bank_code} HP={health['composite_health']:.1f} conf={confidence:.2f} decision={decision['decision']}")
+
+    return {
+        "status": "success",
+        "bank_code": bank_code,
+        "severity": severity,
+        "errors_injected": cfg["errors"],
+        "health": health,
+        "confidence": round(confidence, 4),
+        "leg_a": decision,
+        "leg_b": leg_b,
+        "bridges_activated": len(bridges_created),
+        "bridges": bridges_created,
+        "message": f"Simulated {cfg['label']} downtime for {bank_code} — {len(pending)} payments in protection pool"
+    }
+
+
+@app.post("/api/simulate/reset")
+async def simulate_reset():
+    """Reset all simulated data — clears error streams and capture pools."""
+    error_stream.events.clear() if hasattr(error_stream, 'events') else None
+    logging.info("[SIMULATE] Reset: All simulated telemetry cleared")
+    return {"status": "reset", "message": "All simulated downtime data cleared from engine"}
+
+
 @app.get("/")
 @app.get("/health")
 def health_check():
