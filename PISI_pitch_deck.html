@@ -3,297 +3,514 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PISI — Pitch Deck Presentation</title>
+<title>PISI — Predictive Instant Settlement Intelligence</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg: #0F172A;
-  --card: #1E293B;
-  --card-alt: #334155;
-  --accent: #0EA5E9;
-  --teal: #14B8A6;
-  --moss: #10B981;
-  --coral: #EF4444;
-  --amber: #F59E0B;
-  --text: #F8FAFC;
-  --muted: #94A3B8;
-  --line: #475569;
+  --bg: #0B132B;
+  --card: #131E41;
+  --border: #283C6E;
+  --accent-blue: #38BDF8;
+  --accent-green: #34D399;
+  --accent-coral: #F87171;
+  --accent-yellow: #FBBF24;
+  --text-white: #F8FAFC;
+  --text-muted: #94A3B8;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
   background: var(--bg);
-  color: var(--text);
+  color: var(--text-white);
   font-family: 'Inter', sans-serif;
-  overflow: hidden;
   height: 100vh;
   width: 100vw;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.progress-bar {
+  height: 4px;
+  background: rgba(255,255,255,0.1);
+  width: 100%;
+}
+.progress-fill {
+  height: 100%;
+  background: var(--accent-blue);
+  width: 6.66%;
+  transition: width 0.3s ease;
 }
 .deck {
-  width: 100%;
-  height: 100%;
+  flex: 1;
   position: relative;
+  width: 100%;
+  height: calc(100% - 64px);
 }
 .slide {
   position: absolute;
-  top: 0; left: 0; width: 100%; height: 100%;
-  padding: 60px 80px 100px;
+  inset: 0;
+  padding: 50px 80px 80px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.4s ease, transform 0.4s ease;
-  transform: scale(0.98);
+  transform: translateY(12px) scale(0.99);
+  transition: opacity 0.35s ease, transform 0.35s ease;
 }
 .slide.active {
   opacity: 1;
   pointer-events: auto;
-  transform: scale(1);
+  transform: translateY(0) scale(1);
 }
-.slide-tag {
+.tag {
   font-family: 'JetBrains Mono', monospace;
   font-size: 13px;
-  color: var(--teal);
+  font-weight: 700;
+  color: var(--accent-blue);
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  margin-bottom: 12px;
-  font-weight: 700;
+  margin-bottom: 8px;
 }
-h1.title {
-  font-family: 'Source Serif 4', serif;
-  font-size: 48px;
-  font-weight: 700;
-  line-height: 1.15;
-  margin-bottom: 16px;
-  color: #FFF;
+.title {
+  font-size: 34px;
+  font-weight: 800;
+  color: var(--text-white);
+  margin-bottom: 8px;
+  line-height: 1.2;
 }
-p.subtitle {
-  font-size: 20px;
-  color: var(--muted);
-  max-width: 850px;
+.subtitle {
+  font-size: 16px;
+  color: var(--text-muted);
+  margin-bottom: 24px;
   line-height: 1.5;
-  margin-bottom: 32px;
 }
-.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 20px; }
-.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; margin-top: 20px; }
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+.grid-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 20px;
+}
+.grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
 .card {
   background: var(--card);
-  border: 1px solid var(--line);
+  border: 1.5px solid var(--border);
   border-radius: 12px;
-  padding: 28px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+  padding: 24px;
 }
 .card-title {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--teal);
   margin-bottom: 12px;
-}
-.big-num {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 42px;
-  font-weight: 700;
-  color: #FFF;
-  margin-bottom: 6px;
-}
-.sub-label { font-size: 13px; color: var(--muted); font-weight: 500; }
-.mono { font-family: 'JetBrains Mono', monospace; }
-
-table.data-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 16px;
-  font-size: 15px;
-}
-table.data-table th {
-  text-align: left;
-  padding: 12px 14px;
-  border-bottom: 2px solid var(--line);
-  color: var(--muted);
-  font-size: 12px;
-  text-transform: uppercase;
-}
-table.data-table td {
-  padding: 14px;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
-}
-
-.controls {
-  position: absolute;
-  bottom: 24px;
-  right: 32px;
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 8px;
+}
+.bullet {
+  color: var(--text-muted);
+  font-size: 14.5px;
+  line-height: 1.6;
+  margin-bottom: 10px;
+}
+.bullet strong {
+  color: var(--text-white);
+}
+.big-metric {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 40px;
+  font-weight: 800;
+  margin-bottom: 6px;
+}
+.metric-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+.mono {
+  font-family: 'JetBrains Mono', monospace;
+}
+.code-box {
+  background: #060A17;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--accent-blue);
+  overflow-x: auto;
+}
+table.clean-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+  font-size: 14.5px;
+}
+table.clean-table th {
+  text-align: left;
+  padding: 12px;
+  background: rgba(255,255,255,0.04);
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 12px;
+}
+table.clean-table td {
+  padding: 14px 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.controls {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: rgba(11, 19, 43, 0.95);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 40px;
   z-index: 100;
 }
 .btn {
-  background: var(--card-alt);
-  color: #FFF;
-  border: 1px solid var(--line);
-  padding: 10px 20px;
-  border-radius: 8px;
+  background: var(--card);
+  color: var(--text-white);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 18px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
 }
-.btn:hover { background: var(--teal); border-color: var(--teal); }
-.slide-num { font-family: 'JetBrains Mono', monospace; font-size: 14px; color: var(--muted); }
+.btn:hover {
+  background: var(--border);
+  border-color: var(--accent-blue);
+}
+.slide-counter {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+a {
+  color: var(--accent-blue);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
 </style>
 </head>
 <body>
 
-<div class="deck" id="deck">
+<div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
 
-  <!-- SLIDE 1 -->
+<div class="deck">
+
+  <!-- SLIDE 1: Title -->
   <div class="slide active">
-    <div class="slide-tag">Track 3: AI Revenue Recovery · Razorpay AI Buildathon 2026</div>
-    <h1 class="title">PISI — Predictive Instant Settlement Intelligence</h1>
-    <p class="subtitle">Autonomous Post-Capture Revenue Recovery &amp; Pre-Approved Instant Settlement Engine</p>
-    <div class="grid-3">
-      <div class="card">
-        <div class="card-title">Precision</div>
-        <div class="big-num" style="color:var(--moss)">100.0%</div>
-        <div class="sub-label">0 False Positives / Zero Wasted Capital</div>
+    <div class="tag">TRACK 3 • AI REVENUE RECOVERY</div>
+    <div style="font-size:72px;font-weight:800;letter-spacing:-0.03em;color:#fff;margin-bottom:8px;">PISI</div>
+    <div style="font-size:28px;font-weight:700;color:var(--accent-blue);margin-bottom:16px;">Predictive Instant Settlement Intelligence</div>
+    <p style="font-size:18px;color:var(--text-muted);max-width:750px;line-height:1.6;margin-bottom:32px;">
+      Autonomous Post-Capture Liquidity Protection &amp; Pre-Approved Instant Settlement for Razorpay Merchants.
+    </p>
+    <div style="display:flex;gap:16px;align-items:center;">
+      <span class="btn" style="border-color:var(--accent-green);color:var(--accent-green);cursor:default;">Razorpay AI Buildathon 2026</span>
+      <span style="font-size:14px;color:var(--text-muted);">Use Arrow Keys &larr; &rarr; or Spacebar to Navigate</span>
+    </div>
+  </div>
+
+  <!-- SLIDE 2: The Problem -->
+  <div class="slide">
+    <div class="tag">Problem Breakdown</div>
+    <h1 class="title">Two Fundamentally Different Payment Failures</h1>
+    <p class="subtitle">Most systems confuse authorization failure with post-capture settlement risk.</p>
+    <div class="grid-2">
+      <div class="card" style="border-color:var(--accent-coral)">
+        <div class="card-title" style="color:var(--accent-coral)">1. AUTHORIZATION FAILURE</div>
+        <div class="bullet">• The payment attempt itself fails at checkout.</div>
+        <div class="bullet">• Customer's issuing bank cannot approve the debit.</div>
+        <div class="bullet">• Razorpay docs call this "beyond our control" and point to multi-terminal routing.</div>
+        <div class="bullet"><strong>Handled by Smart Routing (Bygari et al., 2021).</strong></div>
+        <div class="bullet" style="color:var(--accent-coral);font-weight:700;margin-top:16px;">ALREADY SOLVED BY RAZORPAY.</div>
       </div>
-      <div class="card">
-        <div class="card-title">Recall</div>
-        <div class="big-num" style="color:var(--teal)">87.5%</div>
-        <div class="sub-label">14 of 16 Outages Protected</div>
-      </div>
-      <div class="card">
-        <div class="card-title">Protected Volume</div>
-        <div class="big-num">₹18.77L</div>
-        <div class="sub-label">Across 100 Benchmark Incidents (seed=42)</div>
+      <div class="card" style="border-color:var(--accent-green)">
+        <div class="card-title" style="color:var(--accent-green)">2. SETTLEMENT RISK</div>
+        <div class="bullet">• The payment already succeeded and was captured.</div>
+        <div class="bullet">• Funds are trapped onward in degraded partner bank CBS.</div>
+        <div class="bullet">• Not a customer error — a severe merchant cash-flow crisis (T+2 to T+7 delay).</div>
+        <div class="bullet">• Today, merchants must notice delays manually and pay 0.30%–0.50% fee.</div>
+        <div class="bullet" style="color:var(--accent-green);font-weight:700;margin-top:16px;">NOTHING PREDICTS THIS TODAY. PISI BUILDS IT.</div>
       </div>
     </div>
   </div>
 
-  <!-- SLIDE 2 -->
+  <!-- SLIDE 3: Razorpay Built Both Halves -->
   <div class="slide">
-    <div class="slide-tag">The Problem Statement</div>
-    <h1 class="title">The $100M+ Trapped Settlement Liquidity Gap</h1>
-    <p class="subtitle">What happens when a partner settlement bank degrades post-capture?</p>
+    <div class="tag">Existing Foundation</div>
+    <h1 class="title">Razorpay Already Built Both Halves</h1>
+    <p class="subtitle">Both systems exist today in isolation, but no layer bridges prediction to capital advance.</p>
     <div class="grid-2">
       <div class="card">
-        <div class="card-title">1. Pre-Checkout / Authorization</div>
-        <p style="color:var(--muted);line-height:1.6;font-size:15px;">
-          Handled by Razorpay Smart Routing.<br>
-          Reroutes failed checkout attempts to alternate gateways before payment completion.
-        </p>
+        <div class="card-title" style="color:var(--accent-blue)">SMART ROUTING (Acquiring Side)</div>
+        <div class="bullet">✔ <strong>94.69% precision</strong> (Random Forest, best of 5 models).</div>
+        <div class="bullet">✔ <strong>4–6% measured lift</strong> in production success rate.</div>
+        <div class="bullet">✔ Trained on <strong>~35 Million</strong> real transactions.</div>
+        <div class="bullet">✔ Operates on gateway/terminal routing before authorization.</div>
+        <div class="bullet">❌ Cannot touch settlement timing after payment capture.</div>
       </div>
-      <div class="card" style="border-color:var(--coral)">
-        <div class="card-title" style="color:var(--coral)">2. Post-Capture / Settlement (THE GAP)</div>
-        <p style="color:var(--muted);line-height:1.6;font-size:15px;">
-          Payment already succeeded and captured.<br>
-          Funds trapped in degraded bank CBS. Merchant faces T+2 to T+7 delay with zero automated protection.
-        </p>
+      <div class="card">
+        <div class="card-title" style="color:var(--accent-yellow)">INSTANT SETTLEMENT (Payout Side)</div>
+        <div class="bullet">✔ <strong>T+0 payout advance</strong> using Razorpay corporate capital.</div>
+        <div class="bullet">✔ Published pricing at <strong>0.30% fee</strong> per settlement.</div>
+        <div class="bullet">✔ Applies only to payments that are already captured.</div>
+        <div class="bullet">❌ <strong>100% reactive:</strong> Merchant must notice delay and click.</div>
+        <div class="bullet">❌ Only <strong>~15% opt-in rate</strong>; 85% at-risk volume remains unserved.</div>
       </div>
     </div>
   </div>
 
-  <!-- SLIDE 3 -->
+  <!-- SLIDE 4: The Gap -->
   <div class="slide">
-    <div class="slide-tag">Research Foundations</div>
-    <h1 class="title">Bridging Razorpay's Smart Routing (Bygari et al., 2021)</h1>
-    <p class="subtitle">Smart Routing optimizes pre-checkout authorization. PISI completes the safety net post-capture.</p>
+    <div class="tag">Architectural Missing Link</div>
+    <h1 class="title">The Gap: Nothing Connects Prediction to Capital</h1>
+    <p class="subtitle">Smart Routing predicts gateway failures; Instant Settlement advances funds reactively.</p>
+    <div class="card" style="margin-bottom:24px;">
+      <div class="code-box">
+SMART ROUTING                   INSTANT SETTLEMENT                  PISI
+Predicts which gateway          Advances payout,                    Predictive, automatic,
+succeeds before auth            reactively upon request             pre-approved settlement
+(Acquiring Side)                (Post-Capture Liquidity)            (Autonomous Agent Loop)
+      </div>
+    </div>
+    <div class="card" style="border-left:4px solid var(--accent-blue);background:rgba(56,189,248,0.06);">
+      <p style="font-size:17px;line-height:1.6;font-style:italic;color:#fff;">
+        "Smart Routing already handles gateway-side degradation. Nothing predicts settlement-path risk ahead of time and pre-approves the advance automatically — today a merchant has to notice the delay themselves."
+      </p>
+    </div>
+  </div>
+
+  <!-- SLIDE 5: Two Independent Legs -->
+  <div class="slide">
+    <div class="tag">Core Mechanism</div>
+    <h1 class="title">How It Works: Two Independent Legs</h1>
+    <p class="subtitle">Separating money-moving actions from early-warning notifications.</p>
+    <div class="grid-2">
+      <div class="card" style="border-color:var(--accent-green);">
+        <div class="card-title" style="color:var(--accent-green)">LEG A · SETTLEMENT PROTECTION</div>
+        <div style="font-size:13px;font-weight:700;color:var(--accent-green);margin-bottom:12px;">MOVES CORPORATE CAPITAL</div>
+        <div class="bullet">✔ Pre-approves captured payments when settlement bank degrades.</div>
+        <div class="bullet">✔ Triggers at <strong>Bank Health &lt; 50 HP</strong> and <strong>Confidence &ge; 0.70</strong>.</div>
+        <div class="bullet">✔ Advances instant funds at discounted <strong>0.10% predictive fee</strong>.</div>
+        <div class="bullet">✔ Protected by hard <strong>30% portfolio capital cap</strong>.</div>
+      </div>
+      <div class="card" style="border-color:var(--accent-yellow);">
+        <div class="card-title" style="color:var(--accent-yellow)">LEG B · AUTHORIZATION EARLY WARNING</div>
+        <div style="font-size:13px;font-weight:700;color:var(--accent-yellow);margin-bottom:12px;">INFORMATIONAL ONLY (ZERO CAPITAL)</div>
+        <div class="bullet">✔ Pushes webhook alert when issuing bank shows authorization spikes.</div>
+        <div class="bullet">✔ Allows merchant to steer checkout traffic before failure peak.</div>
+        <div class="bullet">✔ Shortens incident reaction time by 15–30 minutes.</div>
+        <div class="bullet">✔ <strong>Never claims to prevent failure</strong> — zero liquidity risk.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 6: 6-Layer Architecture -->
+  <div class="slide">
+    <div class="tag">System Design</div>
+    <h1 class="title">Architecture: Six Layers, Perceive to Learn</h1>
+    <p class="subtitle">From live webhook ingestion to autonomous feedback and model retraining.</p>
+    <div class="grid-3" style="gap:14px;">
+      <div class="card"><div class="card-title" style="color:var(--accent-blue)">L1 Data Ingestion</div><p class="bullet">Captured &amp; error webhook streams (&lt;5ms HMAC verification).</p></div>
+      <div class="card"><div class="card-title" style="color:var(--accent-blue)">L2 Feature Engineering</div><p class="bullet">5D Bank Vitality composite score (error spikes, delay trends).</p></div>
+      <div class="card"><div class="card-title" style="color:var(--accent-green)">L3 Prediction Engine</div><p class="bullet">Calibrated XGBoost classifier (47 features) + duration estimate.</p></div>
+      <div class="card"><div class="card-title" style="color:var(--accent-green)">L4 Decision Engine</div><p class="bullet">3-Tier Escalation Matrix, 30% capital cap, 10 concurrent limits.</p></div>
+      <div class="card"><div class="card-title" style="color:var(--accent-yellow)">L5 Execution Layer</div><p class="bullet">Instant settlement dispatch + Immutable SHA-256 BridgeKeyID.</p></div>
+      <div class="card"><div class="card-title" style="color:var(--accent-coral)">L6 Drift &amp; Retrain</div><p class="bullet">Kolmogorov-Smirnov drift detection with autonomous retraining.</p></div>
+    </div>
+  </div>
+
+  <!-- SLIDE 7: Live System Console -->
+  <div class="slide">
+    <div class="tag">Real Execution</div>
+    <h1 class="title">Live System: Working Console &amp; Audit Trail</h1>
+    <p class="subtitle">Interactive console visualizing bank vitality, decision triggers, and cryptographic receipts.</p>
     <div class="grid-2">
       <div class="card">
-        <div class="card-title">Smart Routing (Bygari et al., 2021)</div>
-        <ul style="color:var(--muted);line-height:1.8;font-size:15px;padding-left:20px;">
-          <li>94.69% precision on gateway selection</li>
-          <li>4–6% production lift in success rate</li>
-          <li>Operates <i>before</i> payment authorization</li>
-        </ul>
+        <div class="card-title" style="color:var(--accent-coral)">BANK VITALITY SCORE — SBI</div>
+        <div class="big-num" style="color:var(--accent-coral);font-size:36px;font-family:'JetBrains Mono',monospace;">91 &rarr; 67 &rarr; 34 HP</div>
+        <div style="font-size:13px;color:var(--accent-coral);font-weight:700;margin-bottom:16px;">STATUS: CRITICAL</div>
+        <div class="bullet">✔ <strong>Leg A Decision:</strong> <span style="color:var(--accent-green);font-weight:700;">ACTIVATE</span> (Pre-approved Instant Settlement)</div>
+        <div class="bullet">✔ <strong>Leg B Decision:</strong> <span style="color:var(--accent-yellow);font-weight:700;">WARN</span> (Authorization Alert Pushed)</div>
       </div>
-      <div class="card" style="border-color:var(--teal)">
-        <div class="card-title" style="color:var(--teal)">PISI Autonomous Settlement Engine</div>
-        <ul style="color:var(--muted);line-height:1.8;font-size:15px;padding-left:20px;">
-          <li>Detects bank failure 15–30 mins before collapse</li>
-          <li>Operates <i>after</i> payment capture</li>
-          <li>Pre-approves instant settlement at 0.10% fee rate</li>
-        </ul>
+      <div class="card">
+        <div class="card-title" style="color:var(--accent-blue)">BRIDGE KEY ID &sect;7.3 AUDIT RECORD</div>
+        <div class="code-box" style="font-size:12px;">
+BRIDGE-SBI-20260823T133603-mo_000
+Amount: ₹3,641.63 | Credited: ₹3,637.99 (T+0)
+SHA-256: 944c25f386d8358b22f4f7734c67b12e55516bd2392...
+        </div>
+        <div class="bullet" style="color:var(--accent-green);font-weight:700;margin-top:12px;">✔ Books balanced — debits = credits verified byte-for-byte</div>
       </div>
     </div>
   </div>
 
-  <!-- SLIDE 4 -->
+  <!-- SLIDE 8: Measured Results -->
   <div class="slide">
-    <div class="slide-tag">Architecture &amp; Decision Gate</div>
-    <h1 class="title">Two-Leg Autonomous Decision Engine</h1>
-    <p class="subtitle">Dual telemetry streams feed a 5-dimension Bank Vitality Score with strict capital bounds.</p>
-    <table class="data-table">
+    <div class="tag">Empirical Validation</div>
+    <h1 class="title">Measured Results: 1,000 Independent Incidents</h1>
+    <p class="subtitle">Tested against 1,000 synthetic bank outages to evaluate safety gates under stress.</p>
+    <div class="grid-4" style="margin-bottom:20px;">
+      <div class="card"><div class="big-metric" style="color:var(--accent-green)">119</div><div class="metric-label">True Positives</div></div>
+      <div class="card"><div class="big-metric" style="color:var(--accent-green)">0</div><div class="metric-label">False Positives</div></div>
+      <div class="card"><div class="big-metric" style="color:var(--accent-coral)">49</div><div class="metric-label">False Negatives</div></div>
+      <div class="card"><div class="big-metric" style="color:var(--accent-blue)">832</div><div class="metric-label">True Negatives</div></div>
+    </div>
+    <div class="card">
+      <div style="font-size:15px;font-weight:700;color:var(--accent-green);margin-bottom:8px;">100% PRECISION | 70.8% RECALL (N=1000, STABLE)</div>
+      <div class="bullet">• <strong>43 of 49 Misses:</strong> Confidence stayed below the 0.70 activation floor. The engine correctly held back rather than deploy capital on an uncertain signal.</div>
+      <div class="bullet">• <strong>6 of 49 Misses:</strong> Occurred only after incident #965 of 1000 when cumulative deployment hit the 30% capital cap. The safety limit is real and binding.</div>
+    </div>
+  </div>
+
+  <!-- SLIDE 9: Real Classifier on Harder Data -->
+  <div class="slide">
+    <div class="tag">Machine Learning Rigor</div>
+    <h1 class="title">A Real Trained Classifier, on Harder Data</h1>
+    <p class="subtitle">Evaluated on an adversarial noisy dataset where bank failure patterns are non-trivial.</p>
+    <table class="clean-table">
       <thead>
-        <tr><th>Dimension</th><th>Leg A: Settlement Protection</th><th>Leg B: Authorization Warning</th></tr>
+        <tr><th>Model</th><th>Precision</th><th>Recall</th><th>F1 Score</th><th>Behavior</th></tr>
       </thead>
       <tbody>
-        <tr><td>Primary Condition</td><td class="mono" style="color:var(--moss)">Health &lt; 50 AND Confidence &ge; 0.70</td><td class="mono" style="color:var(--amber)">Health &lt; 70 AND Confidence &ge; 0.50</td></tr>
-        <tr><td>Capital Action</td><td>Deploys Corporate Capital (T+0 Credit)</td><td>Zero Capital Deployed (Informational Alert)</td></tr>
-        <tr><td>Merchant Impact</td><td>Instant Cash Flow @ 0.10% Fee</td><td>Early warning to redirect traffic</td></tr>
-        <tr><td>Ledger Audit</td><td>64-char SHA-256 BridgeKeyID Audit Log</td><td>Webhook Event Notification Log</td></tr>
+        <tr><td><strong>Naive Heuristic Rule</strong></td><td>27.9%</td><td>50.2%</td><td>0.359</td><td>Over-deploys on false alarms</td></tr>
+        <tr style="background:rgba(52,211,153,0.06);"><td style="color:var(--accent-green);font-weight:700;">Trained XGBoost</td><td style="color:var(--accent-green);font-weight:700;">38.4%</td><td style="color:var(--accent-green);font-weight:700;">54.5%</td><td style="color:var(--accent-green);font-weight:700;">0.450</td><td>Beats naive on both precision &amp; recall</td></tr>
+      </tbody>
+    </table>
+    <div class="card" style="margin-top:20px;">
+      <div class="bullet">✔ <strong>Learned True Signal:</strong> Planted noise features correctly ranked last in importance (avg rank 8.0/10).</div>
+      <div class="bullet">✔ <strong>Validation-Tuned Threshold:</strong> Calibrated optimal validation threshold at 0.225, preventing recall collapse.</div>
+    </div>
+  </div>
+
+  <!-- SLIDE 10: Found, Measured, and Fixed -->
+  <div class="slide">
+    <div class="tag">Continuous Improvement</div>
+    <h1 class="title">Found, Measured, and Fixed: Engineering Iterations</h1>
+    <p class="subtitle">Iterative problem-solving applied directly to operational bottlenecks.</p>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title" style="color:var(--accent-coral)">CAPITAL ALLOCATION ORDERING FLAW</div>
+        <div class="bullet">• 6 misses occurred due to capital exhaustion near incident #965.</div>
+        <div class="bullet">• <strong>Root Cause:</strong> An ordering problem, not a confidence failure.</div>
+        <div class="bullet">• <strong>Fix:</strong> Smallest-Transaction-First allocation + per-incident reserve cap.</div>
+        <div class="bullet" style="color:var(--accent-green);font-weight:700;">RESULT: 100% of capital misses rescued across 5 seeds with 0 new false positives.</div>
+      </div>
+      <div class="card">
+        <div class="card-title" style="color:var(--accent-green)">AUTONOMOUS LEARNING LOOP</div>
+        <div class="bullet">• Simulated post-deployment feature drift in error telemetry.</div>
+        <div class="bullet">• Triggered automated retraining on accumulated production data.</div>
+        <div class="bullet">• Verified on a 3rd untouched test batch to prevent overfitting.</div>
+        <div class="bullet" style="color:var(--accent-green);font-weight:700;">RESULT: F1 improved 0.413 &rarr; 0.454 in 5 of 5 seed pairs tested.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 11: Small, Honest, Reproducible -->
+  <div class="slide">
+    <div class="tag">Unit Economics</div>
+    <h1 class="title">Financial Impact: Measured, Not Projected</h1>
+    <p class="subtitle">Literal stdout of python scripts/batch_eval.py — seed=42, n=1000.</p>
+    <div class="grid-4" style="margin-bottom:24px;">
+      <div class="card"><div class="big-metric" style="color:var(--accent-blue)">₹1.50 Cr</div><div class="metric-label">Protected Volume</div></div>
+      <div class="card"><div class="big-metric" style="color:var(--accent-green)">₹14,999.90</div><div class="metric-label">Fee Revenue (0.10%)</div></div>
+      <div class="card"><div class="big-metric" style="color:var(--accent-green)">₹5,136.95</div><div class="metric-label">Net Fee Profit</div></div>
+      <div class="card"><div class="big-metric" style="color:var(--accent-yellow)">₹29,999.80</div><div class="metric-label">Merchant Savings</div></div>
+    </div>
+    <div class="card" style="text-align:center;">
+      <p style="font-size:18px;font-style:italic;color:#fff;line-height:1.6;">
+        "This isn't a new prediction model — Razorpay's is better than anything built in two weeks.<br>
+        It's a product gap: turning a settlement product from reactive to predictive."
+      </p>
+    </div>
+  </div>
+
+  <!-- SLIDE 12: Production-Ready & Deployed -->
+  <div class="slide">
+    <div class="tag">Production Engineering</div>
+    <h1 class="title">Production-Ready &amp; Deployed (Full-Stack)</h1>
+    <p class="subtitle">Containerized backend on Render connected via reverse proxy to Vercel console.</p>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title" style="color:var(--accent-blue)">LIVE FULL-STACK SYSTEM</div>
+        <div class="bullet">✔ <strong>Interactive Console (Vercel):</strong> <a href="https://pisi-eosin.vercel.app" target="_blank">https://pisi-eosin.vercel.app</a></div>
+        <div class="bullet">✔ <strong>Decision Engine (Render):</strong> <a href="https://settlement-guard-pisi-predictive-instant.onrender.com" target="_blank">settlement-guard-pisi...onrender.com</a></div>
+        <div class="bullet">✔ <strong>One-Click "Simulate Downtime" Button:</strong> Triggers perception &rarr; XGBoost inference &rarr; capital escalation &rarr; instant settlement.</div>
+        <div class="bullet">✔ <strong>Webhook Ingestion:</strong> 6 Razorpay event types with synchronous HMAC-SHA256 verification (&lt;5ms).</div>
+      </div>
+      <div class="card">
+        <div class="card-title" style="color:var(--accent-green)">SECURITY &amp; CAPITAL SAFEGUARDS</div>
+        <div class="bullet">✔ <strong>Tamper-Evident SHA-256 Audit Trail:</strong> Byte-for-byte verified with Web Crypto and Python hashlib.</div>
+        <div class="bullet">✔ <strong>Double-Entry Protection Ledger:</strong> Debits = credits strictly balanced.</div>
+        <div class="bullet">✔ <strong>3-Tier Escalation Matrix:</strong> HIGH / MEDIUM / LOW response tiers.</div>
+        <div class="bullet">✔ <strong>Hard Stopping Rules:</strong> 30% portfolio cap, 10 concurrent bridges, ₹50K per-tx limit.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 13: Beyond Original Scope -->
+  <div class="slide">
+    <div class="tag">Scope Expansion</div>
+    <h1 class="title">What We've Built Beyond the Original Scope</h1>
+    <p class="subtitle">Production components implemented to demonstrate end-to-end viability.</p>
+    <table class="clean-table">
+      <thead>
+        <tr><th>Feature</th><th>Implementation Impact</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Real Razorpay API Integration</strong></td><td>Executes on-demand settlements with exact rupee-to-paise conversion.</td></tr>
+        <tr><td><strong>Live Webhook Receiver</strong></td><td>Ingests real payment events, verifies HMAC signatures (&lt;5ms latency).</td></tr>
+        <tr><td><strong>Trained XGBoost Model</strong></td><td>F1 = 0.6965 on core benchmark (and 0.450 on adversarial stress-test, Slide 9).</td></tr>
+        <tr><td><strong>Isolation Forest</strong></td><td>Catches novel out-of-distribution bank failures without labels.</td></tr>
+        <tr><td><strong>Autonomous Learning Loop</strong></td><td>Auto-retrains on concept drift, validated across 5 seed pairs.</td></tr>
+        <tr><td><strong>FastAPI Production Server</strong></td><td>Deployed on Render, sub-5ms response with Vercel edge proxy.</td></tr>
       </tbody>
     </table>
   </div>
 
-  <!-- SLIDE 5 -->
-  <div class="slide">
-    <div class="slide-tag">Benchmark Results (100 Incidents · seed=42)</div>
-    <h1 class="title">100% Precision · Measured Financial Impact</h1>
-    <p class="subtitle">Zero corporate capital wasted on false positives.</p>
-    <div class="grid-3">
-      <div class="card">
-        <div class="card-title">Protected Volume</div>
-        <div class="big-num">₹18,77,408</div>
-        <div class="sub-label">14 True Positives Protected</div>
-      </div>
-      <div class="card">
-        <div class="card-title">PISI Fee Revenue</div>
-        <div class="big-num" style="color:var(--teal)">₹1,877.41</div>
-        <div class="sub-label">0.10% Predictive Rate</div>
-      </div>
-      <div class="card">
-        <div class="card-title">Net Fee Profit</div>
-        <div class="big-num" style="color:var(--moss)">₹642.95</div>
-        <div class="sub-label">After 2-day float @ 12% capital cost</div>
-      </div>
-    </div>
+  <!-- SLIDE 14: Closing -->
+  <div class="slide" style="text-align:center;align-items:center;">
+    <div class="tag">Vision</div>
+    <div style="font-size:38px;font-weight:800;color:var(--accent-blue);margin-bottom:12px;">Smart Routing optimizes the path.</div>
+    <div style="font-size:46px;font-weight:800;color:var(--accent-green);margin-bottom:36px;">PISI optimizes the safety net.</div>
+    <div style="font-size:24px;font-weight:700;color:#fff;margin-bottom:12px;">PISI — Predictive Instant Settlement Intelligence</div>
+    <p style="font-size:18px;font-style:italic;color:var(--text-muted);">One question: What if the merchant never had to ask?</p>
   </div>
 
-  <!-- SLIDE 6 -->
+  <!-- SLIDE 15: Links & Resources -->
   <div class="slide">
-    <div class="slide-tag">Transparent Failure Analysis</div>
-    <h1 class="title">Documented Exception List (Zero Cherry-Picking)</h1>
-    <p class="subtitle">Two false negatives held back to guarantee 100% precision and protect capital.</p>
-    <table class="data-table">
-      <thead>
-        <tr><th>Incident</th><th>Bank</th><th>Confidence</th><th>Decision</th><th>Exposure</th><th>Root Cause</th></tr>
-      </thead>
-      <tbody>
-        <tr><td class="mono">INC-039</td><td>HDFC</td><td class="mono">64.59%</td><td>STANDBY</td><td class="mono">₹2,44,038</td><td style="color:var(--coral)">Below 0.70 Confidence Floor</td></tr>
-        <tr><td class="mono">INC-069</td><td>AXIS</td><td class="mono">59.55%</td><td>STANDBY</td><td class="mono">₹1,99,668</td><td style="color:var(--coral)">Below 0.70 Confidence Floor</td></tr>
-      </tbody>
-    </table>
-  </div>
-
-  <!-- SLIDE 7 -->
-  <div class="slide">
-    <div class="slide-tag">Live System Architecture</div>
-    <h1 class="title">Production-Ready Codebase &amp; Live Server</h1>
-    <p class="subtitle">Complete Python stack with standard library backend server and interactive console.</p>
-    <div class="grid-2">
-      <div class="card">
-        <div class="card-title">Python Backend Server</div>
-        <p class="mono" style="color:var(--teal);margin-bottom:8px;">python dashboard/server.py</p>
-        <p style="color:var(--muted);font-size:14px;">Serves REST API endpoints on http://localhost:8080 (/api/health/all, /api/scenario/sbi, /api/batch_eval).</p>
-      </div>
-      <div class="card">
-        <div class="card-title">Interactive Console UI</div>
-        <p class="mono" style="color:var(--moss);margin-bottom:8px;">dashboard/index.html</p>
-        <p style="color:var(--muted);font-size:14px;">Fritsch-Carlson Monotone Spline Area Chart, 5D Vitality breakdown, live SHA-256 hash generator.</p>
-      </div>
+    <div class="tag">Final Submission</div>
+    <h1 class="title">Links, Resources &amp; Submission Details</h1>
+    <p class="subtitle">Everything is live, reproducible, and verifiable online.</p>
+    <div class="card" style="line-height:2.0;font-size:16px;">
+      <div><strong style="color:var(--accent-green)">Interactive Live Dashboard:</strong> <a href="https://pisi-eosin.vercel.app" target="_blank">https://pisi-eosin.vercel.app</a></div>
+      <div><strong style="color:var(--accent-blue)">Production REST API / Health:</strong> <a href="https://settlement-guard-pisi-predictive-instant.onrender.com/health" target="_blank">https://settlement-guard-pisi-predictive-instant.onrender.com/health</a></div>
+      <div><strong style="color:var(--accent-blue)">GitHub Repository:</strong> <a href="https://github.com/asmitha2025/Settlement-Guard-PISI-Predictive-Instant-Settlement-Intelligence" target="_blank">github.com/asmitha2025/Settlement-Guard-PISI-Predictive-Instant-Settlement-Intelligence</a></div>
+      <div style="margin-top:12px;color:var(--accent-yellow);font-weight:700;">Target Track: Track 3 — AI Revenue Recovery (Razorpay AI Buildathon 2026)</div>
     </div>
   </div>
 
@@ -301,29 +518,46 @@ table.data-table td {
 
 <!-- CONTROLS -->
 <div class="controls">
-  <button class="btn" onclick="prevSlide()">&larr; Prev</button>
-  <span class="slide-num" id="slideNum">1 / 7</span>
-  <button class="btn" onclick="nextSlide()">Next &rarr;</button>
+  <button class="btn" onclick="prevSlide()">&larr; Prev (Left Arrow)</button>
+  <div style="display:flex;align-items:center;gap:16px;">
+    <span class="slide-counter" id="slideNum">Slide 1 / 15</span>
+    <button class="btn" onclick="toggleFullscreen()" style="padding:4px 10px;font-size:11px;">Fullscreen (F)</button>
+  </div>
+  <button class="btn" onclick="nextSlide()">Next (Right Arrow / Space) &rarr;</button>
 </div>
 
 <script>
-let currentSlide = 0;
+let current = 0;
 const slides = document.querySelectorAll('.slide');
-const totalSlides = slides.length;
+const total = slides.length;
+const fill = document.getElementById('progressFill');
+const num = document.getElementById('slideNum');
 
-function showSlide(n) {
-  slides[currentSlide].classList.remove('active');
-  currentSlide = (n + totalSlides) % totalSlides;
-  slides[currentSlide].classList.add('active');
-  document.getElementById('slideNum').textContent = `${currentSlide + 1} / ${totalSlides}`;
+function updateSlide(idx) {
+  slides[current].classList.remove('active');
+  current = (idx + total) % total;
+  slides[current].classList.add('active');
+  num.textContent = `Slide ${current + 1} / ${total}`;
+  fill.style.width = `${((current + 1) / total) * 100}%`;
 }
 
-function nextSlide() { showSlide(currentSlide + 1); }
-function prevSlide() { showSlide(currentSlide - 1); }
+function nextSlide() { updateSlide(current + 1); }
+function prevSlide() { updateSlide(current - 1); }
+
+function toggleFullscreen() {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen();
+  } else {
+    if (document.exitFullscreen) document.exitFullscreen();
+  }
+}
 
 document.addEventListener('keydown', (e) => {
-  if (e.key === 'ArrowRight' || e.key === ' ') nextSlide();
-  if (e.key === 'ArrowLeft') prevSlide();
+  if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') nextSlide();
+  if (e.key === 'ArrowLeft' || e.key === 'PageUp') prevSlide();
+  if (e.key === 'f' || e.key === 'F') toggleFullscreen();
+  if (e.key === 'Home') updateSlide(0);
+  if (e.key === 'End') updateSlide(total - 1);
 });
 </script>
 </body>
