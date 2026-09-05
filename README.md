@@ -405,6 +405,13 @@ The project includes a deployed backend architecture:
 3. **Limited Geographic Granularity:** Razorpay downtime signals may not provide sufficient geographic granularity for directly generating a complete regional risk map. The Area Risk Heatmap therefore represents an inference layer based on available merchant-location and bank-specific signals.
 4. **Instant Settlement Test Constraints:** The integration is authenticated and implemented against the available API environment, but actual production money movement is subject to Razorpay's account permissions, API availability, and test/production environment constraints.
 
+### ❓ Why We Train with Synthetic Data (and Not Real Data)
+
+- **🔒 Data Privacy & Regulatory Compliance (PCI-DSS / RBI):** Real transaction and settlement telemetry contain confidential merchant financial data, settlement schedules, and payout routing details. Bank downtime logs are proprietary internal data owned by payment aggregators and core banking systems (CBS/NPCI).
+- **⚡ Extreme Class Imbalance (Rare Event Problem):** Indian core banking infrastructure maintains 99.5%+ uptime. Actual downtime-induced settlement failures are rare "black swan" events. Synthetic data generation allows us to simulate controlled, realistic stress scenarios (e.g., response latency spikes, step-function error surges, network partitions) across all major banking corridors (SBI, HDFC, ICICI, PNB).
+- **🧪 Reproducible Benchmarking:** Using engineered evaluation telemetry with fixed random seeds (`seed=42`) ensures that evaluation scripts (`python scripts/batch_eval.py --n 1000 --seed 42`), benchmarks, and hackathon judges can reproducibly test and verify model behavior.
+- **🔌 Production Plug-and-Play Architecture:** The feature pipeline (`BankVitalityEngine`) extracts 47 real-world metrics. When deployed in a live production environment within Razorpay, the pipeline connects directly to live event streams (`payment.captured`, `payment.downtime.*`) to retrain on production telemetry without altering the Decision Engine or SHA-256 Audit Trail.
+
 ---
 
 ## 🔮 Production Roadmap
